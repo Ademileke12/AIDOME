@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is an admin
+    // Note: For production, admin emails should be stored in Firestore or Firebase Functions
+    // This is a simplified version for development
+    function isAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.email in [
+               'samuelabudu21@gmail.com'
+               // Add more admin emails here as needed
+             ];
+    }
+    
+    // Rules for designs collection
+    match /designs/{designId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Rules for cinematics collection
+    match /cinematics/{cinematicId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Rules for courses collection
+    match /courses/{courseId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+  }
+}
