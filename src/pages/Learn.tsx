@@ -81,10 +81,27 @@ export default function Learn() {
             {/* The line separator */}
             <div className="absolute top-0 left-0 w-full h-[1px] bg-white/[0.05] group-hover:bg-white/20 transition-colors duration-500" />
             
-            <div className="py-8 sm:py-12 grid grid-cols-1 md:grid-cols-[80px_1fr_160px] lg:grid-cols-[100px_1fr_200px] gap-4 sm:gap-6 md:gap-8 items-start cursor-pointer hover:bg-white/[0.01] transition-colors p-3 sm:p-4 -mx-3 sm:-mx-4 rounded-xl"
+            <div className="py-8 sm:py-12 grid grid-cols-1 md:grid-cols-[200px_80px_1fr_160px] lg:grid-cols-[280px_100px_1fr_200px] gap-4 sm:gap-6 md:gap-8 items-start cursor-pointer hover:bg-white/[0.01] transition-colors p-3 sm:p-4 -mx-3 sm:-mx-4 rounded-xl"
               onClick={() => setSelectedCourse(course)}
             >
               
+              {/* Thumbnail Image */}
+              {course.thumbnail ? (
+                <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 group-hover:border-white/20 transition-colors">
+                  <img 
+                    src={course.thumbnail} 
+                    alt={course.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              ) : (
+                <div className="w-full aspect-video rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                  <svg className="w-12 h-12 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
+
               {/* Module Count */}
               <div className="editable-label pt-0 sm:pt-2 text-xs sm:text-sm">
                 {String(course.modules).padStart(2, '0')} Mod.

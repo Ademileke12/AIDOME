@@ -69,7 +69,7 @@ export default function Home() {
   return (
     <div ref={containerRef} className="min-h-screen">
       {/* Hero Section */}
-      <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden">
+      <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden -mt-16 sm:mt-0">
         {/* Abstract 3D Background - Emulated with CSS and image */}
         <motion.div 
           style={{ opacity: heroOpacity }}
@@ -78,7 +78,7 @@ export default function Home() {
           {/* Main abstract focal point */}
           <div className="relative w-full h-full max-w-[1200px] max-h-[800px] flex items-center justify-center">
             {/* Soft volumetric glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-white/[0.03] rounded-full blur-[120px]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95vw] sm:w-[60vw] h-[95vw] sm:h-[60vw] max-w-[800px] max-h-[800px] bg-white/[0.03] rounded-full blur-[120px]" />
             
             {/* The abstract image acting as the 3D chrome/glass object */}
             <motion.img 
@@ -88,13 +88,13 @@ export default function Home() {
               transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
               src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop"
               alt="Abstract 3D Shape"
-              className="relative z-10  w-3/4 object-contain mix-blend-screen opacity-60"
+              className="relative z-10 w-[95vw] sm:w-3/4 object-contain mix-blend-screen opacity-60"
             />
           </div>
         </motion.div>
 
         {/* Hero Content */}
-        <motion.div style={{ y: contentY }} className="relative z-10 text-center px-4 sm:px-6 mt-16 sm:mt-20">
+        <motion.div style={{ y: contentY }} className="relative z-10 text-center px-4 sm:px-6 mt-0 sm:mt-20">
           <motion.h1 
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -245,28 +245,52 @@ export default function Home() {
               whileInView={{ y: 0, opacity: 1 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
-              className="editorial-card p-4 sm:p-6 rounded-xl group hover:border-white/20 transition-colors flex flex-col h-full"
+              className="editorial-card rounded-xl group hover:border-white/20 transition-colors flex flex-col h-full overflow-hidden"
             >
-              <div className="flex justify-between items-start mb-4 sm:mb-6">
-                <div className="editable-label !text-white/40 text-xs sm:text-sm">
-                  {String(course.modules).padStart(2, '0')} Mod.
+              {/* Thumbnail Image */}
+              {course.thumbnail ? (
+                <div className="relative w-full aspect-video overflow-hidden">
+                  <img 
+                    src={course.thumbnail} 
+                    alt={course.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <span className={`absolute top-3 right-3 inline-block px-2 sm:px-3 py-0.5 sm:py-1 backdrop-blur-sm rounded-full text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold ${course.isFree ? 'bg-white/10 border border-white/20 text-white' : 'bg-gradient-to-r from-blue-600/40 to-indigo-600/40 text-indigo-200 border border-indigo-400/50'}`}>
+                    {course.isFree ? 'Free' : 'Premium'}
+                  </span>
                 </div>
-                <span className={`inline-block px-2 sm:px-3 py-0.5 sm:py-1 editorial-card rounded-full text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold ${course.isFree ? 'border border-white/20 text-white' : 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 text-indigo-300 border border-indigo-500/30'}`}>
-                  {course.isFree ? 'Free' : 'Premium'}
-                </span>
+              ) : (
+                <div className="relative w-full aspect-video bg-white/5 flex items-center justify-center">
+                  <svg className="w-12 h-12 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span className={`absolute top-3 right-3 inline-block px-2 sm:px-3 py-0.5 sm:py-1 backdrop-blur-sm rounded-full text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold ${course.isFree ? 'bg-white/10 border border-white/20 text-white' : 'bg-gradient-to-r from-blue-600/40 to-indigo-600/40 text-indigo-200 border border-indigo-400/50'}`}>
+                    {course.isFree ? 'Free' : 'Premium'}
+                  </span>
+                </div>
+              )}
+
+              {/* Content */}
+              <div className="p-4 sm:p-6 flex flex-col flex-grow">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="editable-label !text-white/40 text-xs sm:text-sm">
+                    {String(course.modules).padStart(2, '0')} Modules
+                  </div>
+                </div>
+                <h3 className="text-lg sm:text-xl font-medium tracking-tight mb-2 sm:mb-3 group-hover:text-white/80 transition-colors">
+                  {course.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-white/50 leading-relaxed font-sans mb-6 sm:mb-8 flex-grow line-clamp-3">
+                  {course.description}
+                </p>
+                <Link 
+                  to="/learn" 
+                  className="mt-auto inline-flex items-center text-xs font-medium tracking-widest uppercase text-white/40 group-hover:text-white transition-colors"
+                >
+                  Enroll Now <span className="ml-2">→</span>
+                </Link>
               </div>
-              <h3 className="text-lg sm:text-xl font-medium tracking-tight mb-2 sm:mb-3 group-hover:text-white/80 transition-colors">
-                {course.title}
-              </h3>
-              <p className="text-xs sm:text-sm text-white/50 leading-relaxed font-sans mb-6 sm:mb-8 flex-grow">
-                {course.description}
-              </p>
-              <Link 
-                to="/learn" 
-                className="mt-auto inline-flex items-center text-xs font-medium tracking-widest uppercase text-white/40 group-hover:text-white transition-colors"
-              >
-                Enroll Now <span className="ml-2">→</span>
-              </Link>
             </motion.div>
           ))}
         </div>

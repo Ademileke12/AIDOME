@@ -9,6 +9,7 @@ interface Course {
   modules: number;
   isFree: boolean;
   videoUrl?: string;
+  thumbnail?: string;
 }
 
 type ContentType = 'design' | 'cinematic' | 'course';
@@ -53,7 +54,7 @@ export default function ContentForm({ type, initialData, onSubmit, onCancel }: C
       } else if (type === 'cinematic') {
         setFormData({ title: '', image: '', prompt: '', colors: [''], lighting: '' });
       } else if (type === 'course') {
-        setFormData({ title: '', description: '', modules: 1, isFree: false, videoUrl: '' });
+        setFormData({ title: '', description: '', modules: 1, isFree: false, videoUrl: '', thumbnail: '' });
       }
     }
   }, [initialData, type]);
@@ -68,7 +69,7 @@ export default function ContentForm({ type, initialData, onSubmit, onCancel }: C
     }
 
     // URL validation
-    if (name === 'image' || name === 'videoUrl') {
+    if (name === 'image' || name === 'videoUrl' || name === 'thumbnail') {
       if (value && value.trim()) {
         try {
           new URL(value);
@@ -112,7 +113,7 @@ export default function ContentForm({ type, initialData, onSubmit, onCancel }: C
     });
 
     // Update image preview
-    if (name === 'image' && value) {
+    if ((name === 'image' || name === 'thumbnail') && value) {
       try {
         new URL(value);
         setImagePreview(value);
@@ -473,6 +474,29 @@ export default function ContentForm({ type, initialData, onSubmit, onCancel }: C
                 />
                 {errors.description && (
                   <p className="mt-2 text-sm text-red-400">{errors.description}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block editable-label mb-2">Thumbnail Image URL (Optional)</label>
+                <input
+                  type="url"
+                  value={formData.thumbnail || ''}
+                  onChange={(e) => handleChange('thumbnail', e.target.value)}
+                  onBlur={(e) => {
+                    const error = validateField('thumbnail', e.target.value);
+                    if (error) setErrors((prev) => ({ ...prev, thumbnail: error }));
+                  }}
+                  className={`w-full px-4 py-3 bg-white/5 border ${errors.thumbnail ? 'border-red-500/50' : 'border-white/10'} rounded-lg focus:outline-none focus:border-white/30 transition-colors`}
+                  placeholder="https://example.com/thumbnail.jpg"
+                />
+                {errors.thumbnail && (
+                  <p className="mt-2 text-sm text-red-400">{errors.thumbnail}</p>
+                )}
+                {formData.thumbnail && (
+                  <div className="mt-4 rounded-lg overflow-hidden border border-white/10">
+                    <img src={formData.thumbnail} alt="Thumbnail Preview" className="w-full h-48 object-cover" />
+                  </div>
                 )}
               </div>
 

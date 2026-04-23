@@ -20,6 +20,7 @@ export interface Course {
   modules: number;
   isFree: boolean;
   videoUrl?: string;
+  thumbnail?: string;
 }
 
 // Collection names
