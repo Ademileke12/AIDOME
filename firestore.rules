@@ -21,19 +21,19 @@ service cloud.firestore {
     
     // Rules for designs collection
     match /designs/{designId} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Public read access for home page preview
       allow write: if isAdmin();
     }
     
     // Rules for cinematics collection
     match /cinematics/{cinematicId} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Public read access for home page preview
       allow write: if isAdmin();
     }
     
     // Rules for courses collection
     match /courses/{courseId} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Public read access for home page preview
       allow write: if isAdmin();
     }
     
