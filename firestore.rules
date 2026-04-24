@@ -36,5 +36,38 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isAdmin();
     }
+    
+    // Rules for courseAccess collection
+    match /courseAccess/{accessId} {
+      // Users can read their own purchases
+      allow read: if isAuthenticated() && 
+                     resource.data.userId == request.auth.uid;
+      // Admins can read all purchases
+      allow read: if isAdmin();
+      // Only admins can write (users cannot write directly)
+      allow write: if isAdmin();
+    }
+    
+    // Rules for comments collection
+    match /comments/{commentId} {
+      // All authenticated users can read all comments
+      allow read: if isAuthenticated();
+      
+      // Authenticated users can create comments
+      // Validate that required fields are present and userId matches auth
+      allow create: if isAuthenticated() && 
+                       request.resource.data.keys().hasAll(['courseId', 'userId', 'userName', 'userPhotoURL', 'text', 'timestamp']) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.text is string &&
+                       request.resource.data.text.size() > 0 &&
+                       request.resource.data.text.size() <= 1000;
+      
+      // Users can delete only their own comments
+      allow delete: if isAuthenticated() && 
+                       resource.data.userId == request.auth.uid;
+      
+      // Admins can delete any comment
+      allow delete: if isAdmin();
+    }
   }
 }

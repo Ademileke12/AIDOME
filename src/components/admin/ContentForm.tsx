@@ -10,6 +10,10 @@ interface Course {
   isFree: boolean;
   videoUrl?: string;
   thumbnail?: string;
+  freeTrialDays?: number;
+  freeTrialStartDate?: Date;
+  priceAfterTrial?: number;
+  currency?: string;
 }
 
 type ContentType = 'design' | 'cinematic' | 'course';
@@ -54,7 +58,17 @@ export default function ContentForm({ type, initialData, onSubmit, onCancel }: C
       } else if (type === 'cinematic') {
         setFormData({ title: '', image: '', prompt: '', colors: [''], lighting: '' });
       } else if (type === 'course') {
-        setFormData({ title: '', description: '', modules: 1, isFree: false, videoUrl: '', thumbnail: '' });
+        setFormData({ 
+          title: '', 
+          description: '', 
+          modules: 1, 
+          isFree: false, 
+          videoUrl: '', 
+          thumbnail: '',
+          freeTrialDays: 0,
+          priceAfterTrial: 0,
+          currency: 'USD'
+        });
       }
     }
   }, [initialData, type]);
@@ -96,6 +110,27 @@ export default function ContentForm({ type, initialData, onSubmit, onCancel }: C
     if (name === 'modules') {
       if (!value || value < 1) {
         return 'Modules must be at least 1';
+      }
+    }
+
+    // Free trial days validation
+    if (name === 'freeTrialDays') {
+      if (value && value < 0) {
+        return 'Free trial days cannot be negative';
+      }
+    }
+
+    // Price validation
+    if (name === 'priceAfterTrial') {
+      if (value && value < 0) {
+        return 'Price cannot be negative';
+      }
+    }
+
+    // Currency validation
+    if (name === 'currency') {
+      if (value && value.trim() && value.trim().length !== 3) {
+        return 'Currency must be a 3-letter code (e.g., USD, EUR, NGN)';
       }
     }
 
@@ -552,6 +587,90 @@ export default function ContentForm({ type, initialData, onSubmit, onCancel }: C
                 {errors.videoUrl && (
                   <p className="mt-2 text-sm text-red-400">{errors.videoUrl}</p>
                 )}
+              </div>
+
+              {/* Monetization Fields */}
+              <div className="pt-4 border-t border-white/10">
+                <h3 className="text-lg font-semibold mb-4">Monetization Settings</h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block editable-label mb-2">Free Trial Days (Optional)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.freeTrialDays || 0}
+                      onChange={(e) => handleChange('freeTrialDays', parseInt(e.target.value) || 0)}
+                      onBlur={(e) => {
+                        const error = validateField('freeTrialDays', parseInt(e.target.value) || 0);
+                        if (error) setErrors((prev) => ({ ...prev, freeTrialDays: error }));
+                      }}
+                      className={`w-full px-4 py-3 bg-white/5 border ${errors.freeTrialDays ? 'border-red-500/50' : 'border-white/10'} rounded-lg focus:outline-none focus:border-white/30 transition-colors`}
+                      placeholder="0"
+                    />
+                    <p className="mt-2 text-xs text-white/40">
+                      Set to 0 for no trial. Trial starts when you save this form.
+                    </p>
+                    {errors.freeTrialDays && (
+                      <p className="mt-2 text-sm text-red-400">{errors.freeTrialDays}</p>
+                    )}
+                    {formData.freeTrialStartDate && formData.freeTrialDays > 0 && (
+                      <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                        <p className="text-sm text-blue-300">
+                          Trial started: {new Date(formData.freeTrialStartDate).toLocaleDateString()}
+                        </p>
+                        <p className="text-sm text-blue-300">
+                          Expires: {new Date(new Date(formData.freeTrialStartDate).getTime() + formData.freeTrialDays * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block editable-label mb-2">Price After Trial (Optional)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.priceAfterTrial || 0}
+                      onChange={(e) => handleChange('priceAfterTrial', parseFloat(e.target.value) || 0)}
+                      onBlur={(e) => {
+                        const error = validateField('priceAfterTrial', parseFloat(e.target.value) || 0);
+                        if (error) setErrors((prev) => ({ ...prev, priceAfterTrial: error }));
+                      }}
+                      className={`w-full px-4 py-3 bg-white/5 border ${errors.priceAfterTrial ? 'border-red-500/50' : 'border-white/10'} rounded-lg focus:outline-none focus:border-white/30 transition-colors`}
+                      placeholder="0.00"
+                    />
+                    <p className="mt-2 text-xs text-white/40">
+                      Price to charge after free trial expires (set to 0 for free)
+                    </p>
+                    {errors.priceAfterTrial && (
+                      <p className="mt-2 text-sm text-red-400">{errors.priceAfterTrial}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block editable-label mb-2">Currency (Optional)</label>
+                    <input
+                      type="text"
+                      maxLength={3}
+                      value={formData.currency || 'USD'}
+                      onChange={(e) => handleChange('currency', e.target.value.toUpperCase())}
+                      onBlur={(e) => {
+                        const error = validateField('currency', e.target.value);
+                        if (error) setErrors((prev) => ({ ...prev, currency: error }));
+                      }}
+                      className={`w-full px-4 py-3 bg-white/5 border ${errors.currency ? 'border-red-500/50' : 'border-white/10'} rounded-lg focus:outline-none focus:border-white/30 transition-colors`}
+                      placeholder="USD"
+                    />
+                    <p className="mt-2 text-xs text-white/40">
+                      3-letter currency code (e.g., USD, EUR, NGN)
+                    </p>
+                    {errors.currency && (
+                      <p className="mt-2 text-sm text-red-400">{errors.currency}</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </>
           )}

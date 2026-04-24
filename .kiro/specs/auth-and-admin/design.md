@@ -127,6 +127,7 @@ interface FirebaseConfig {
 - `VITE_FIREBASE_MESSAGING_SENDER_ID`
 - `VITE_FIREBASE_APP_ID`
 - `VITE_ADMIN_EMAILS` (comma-separated list)
+- `VITE_PAYSTACK_PUBLIC_KEY` (NEW - for payment integration)
 
 ### 3. Protected Route Component
 
@@ -264,7 +265,107 @@ interface ContentFormProps {
 - Colors: valid hex color format (#RRGGBB)
 - Modules: positive integer
 
-### 9. Video Player Component
+### 9. Dedicated Course Page Component
+
+**Purpose**: Display course video with full details, comments, and payment options.
+
+**Interface**:
+```typescript
+interface CoursePageProps {
+  courseId: string;
+}
+```
+
+**UI Elements**:
+- Large video player (YouTube embed or HTML5)
+- "Open in YouTube" button for external viewing
+- Course title, description, and module count
+- Free trial countdown timer (if applicable)
+- Payment button (if course requires payment and user hasn't purchased)
+- Comments section below video
+- Comment input field for authenticated users
+- Glassmorphism cards for all sections
+
+**Behavior**:
+- Checks if user has purchased course or if free trial is active
+- Shows payment modal if course requires payment
+- Loads and displays comments in real-time
+- Allows users to post and delete their own comments
+- Updates countdown timer every second
+
+### 10. Payment Modal Component
+
+**Purpose**: Handle Paystack payment flow for course purchases.
+
+**Interface**:
+```typescript
+interface PaymentModalProps {
+  course: Course;
+  onSuccess: () => void;
+  onClose: () => void;
+}
+```
+
+**UI Elements**:
+- Glassmorphism modal overlay
+- Course title and price display
+- "Pay with Paystack" button
+- Payment processing indicator
+- Success/error messages
+
+**Behavior**:
+- Initializes Paystack payment with course price
+- Handles payment success callback
+- Records purchase in Firestore
+- Grants user access to course
+- Closes modal on success or cancellation
+
+### 11. Comments Component
+
+**Purpose**: Display and manage course comments.
+
+**Interface**:
+```typescript
+interface CommentsProps {
+  courseId: string;
+}
+```
+
+**UI Elements**:
+- List of comments with user info and timestamps
+- Comment input textarea
+- Submit button
+- Delete button (for user's own comments)
+- Empty state message
+
+**Behavior**:
+- Fetches comments from Firestore in real-time
+- Allows authenticated users to post comments
+- Allows users to delete their own comments
+- Displays relative timestamps (e.g., "2 hours ago")
+- Auto-scrolls to new comments
+
+### 12. Free Trial Timer Component
+
+**Purpose**: Display countdown for course free trial period.
+
+**Interface**:
+```typescript
+interface FreeTrialTimerProps {
+  course: Course;
+}
+```
+
+**UI Elements**:
+- Countdown display (days, hours, minutes)
+- Warning message as trial nears end
+- Glassmorphism badge styling
+
+**Behavior**:
+- Calculates time remaining from freeTrialStartDate and freeTrialDays
+- Updates every second
+- Shows different styling when < 24 hours remain
+- Hides when trial expires
 
 **Purpose**: Display course videos in an integrated player.
 
@@ -291,7 +392,31 @@ interface VideoPlayerProps {
 - Maintains aspect ratio (16:9)
 - Responsive design for mobile
 
-### 10. Firestore Service Layer
+### 13. Video Player Component
+
+**Purpose**: Display course videos in an integrated player (now used within course page).
+
+**Interface**:
+```typescript
+interface VideoPlayerProps {
+  course: Course;
+  showExternalLink?: boolean;
+}
+```
+
+**UI Elements**:
+- Video player (iframe for YouTube/Vimeo or HTML5 video)
+- "Open in YouTube" button (if YouTube video)
+- Video controls
+- Responsive aspect ratio (16:9)
+
+**Behavior**:
+- Detects video URL type (YouTube, Vimeo, direct)
+- Renders appropriate player
+- Provides external link for YouTube videos
+- Maintains aspect ratio across devices
+
+### 14. Firestore Service Layer
 
 **Purpose**: Abstract database operations for content management.
 
@@ -314,10 +439,20 @@ interface FirestoreService {
   
   // Courses
   getCourses(): Promise<Course[]>;
-  getCourseById(id: string): Promise<string | null>;
+  getCourseById(id: string): Promise<Course | null>;
   createCourse(course: Omit<Course, 'id'>): Promise<string>;
   updateCourse(id: string, course: Partial<Course>): Promise<void>;
   deleteCourse(id: string): Promise<void>;
+  
+  // Course Access (NEW)
+  checkCourseAccess(userId: string, courseId: string): Promise<boolean>;
+  recordCoursePurchase(purchase: Omit<CourseAccess, 'id'>): Promise<string>;
+  getUserPurchases(userId: string): Promise<CourseAccess[]>;
+  
+  // Comments (NEW)
+  getComments(courseId: string): Promise<Comment[]>;
+  createComment(comment: Omit<Comment, 'id'>): Promise<string>;
+  deleteComment(commentId: string): Promise<void>;
 }
 ```
 
@@ -325,6 +460,8 @@ interface FirestoreService {
 - `designs`: Gallery items
 - `cinematics`: Cinematic images
 - `courses`: Learning courses
+- `courseAccess`: User course purchases (NEW)
+- `comments`: Course comments (NEW)
 
 **Document Structure**:
 Documents match the existing TypeScript interfaces from `data.ts`, with Firestore auto-generating IDs.
@@ -360,7 +497,31 @@ interface Course {
   description: string;
   modules: number;
   isFree: boolean;
-  videoUrl?: string; // NEW FIELD
+  videoUrl?: string;
+  // NEW FIELDS for monetization
+  freeTrialDays?: number;
+  freeTrialStartDate?: Date;
+  priceAfterTrial?: number;
+  currency?: string;
+  thumbnail?: string;
+}
+
+interface CourseAccess {
+  userId: string;
+  courseId: string;
+  purchaseDate: Date;
+  paymentReference: string;
+  amount: number;
+}
+
+interface Comment {
+  id: string;
+  courseId: string;
+  userId: string;
+  userName: string;
+  userPhotoURL: string;
+  text: string;
+  timestamp: Date;
 }
 ```
 

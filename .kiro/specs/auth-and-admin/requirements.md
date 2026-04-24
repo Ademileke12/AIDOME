@@ -149,7 +149,64 @@ This specification defines the authentication and admin functionality for the AI
 4. WHEN a Session expires, THE System SHALL automatically sign out the user and redirect to Sign In
 5. WHEN a user signs out, THE Navigation_Menu SHALL immediately hide all navigation links except Sign In
 
-### Requirement 11: UI Consistency and Aesthetics
+### Requirement 11: Course Monetization and Temporary Free Access
+
+**User Story:** As an Admin_User, I want to make courses temporarily free for a specified number of days, so that I can run promotional campaigns and then charge for access after the promotion ends.
+
+#### Acceptance Criteria
+
+1. WHEN an Admin_User creates or edits a Course, THE System SHALL provide fields for: free trial days (number), price after trial (amount), and currency
+2. WHEN an Admin_User sets free trial days to a value greater than 0, THE System SHALL start a countdown timer from that moment
+3. WHEN a Course has an active free trial, THE System SHALL display a countdown timer to all users showing days/hours remaining until paid access is required
+4. WHEN the free trial period expires, THE System SHALL automatically change the Course status to "paid" and require payment for access
+5. WHEN a Course requires payment, THE System SHALL display the price set by the Admin_User
+6. WHEN the free trial ends, THE System SHALL notify users who accessed the course during the trial that payment is now required for continued access
+7. WHEN an Admin_User updates the free trial days, THE System SHALL recalculate the expiration timestamp from the current time
+
+### Requirement 12: Paystack Payment Integration
+
+**User Story:** As a user, I want to pay for courses using Paystack, so that I can access premium course content permanently.
+
+#### Acceptance Criteria
+
+1. WHEN a user clicks on a paid Course, THE System SHALL display a payment prompt with the course price and a "Pay with Paystack" button
+2. WHEN a user clicks "Pay with Paystack", THE System SHALL initiate the Paystack payment flow with the correct amount
+3. WHEN a payment is successful, THE System SHALL record the user's purchase in the Content_Database with user ID, course ID, payment reference, and timestamp
+4. WHEN a user has purchased a Course, THE System SHALL grant them lifetime access to that course
+5. WHEN a user who has purchased a Course clicks on it, THE System SHALL open the video player without requiring payment again
+6. WHEN a payment fails, THE System SHALL display an error message and allow the user to retry
+7. THE System SHALL store Paystack public key in environment variables for security
+
+### Requirement 13: Dedicated Course Video Page
+
+**User Story:** As a user, I want to watch courses on a dedicated full page with video controls and information, so that I have an immersive learning experience.
+
+#### Acceptance Criteria
+
+1. WHEN a user clicks on a Course (free or purchased), THE System SHALL navigate to a dedicated course page at route `/course/:id`
+2. WHEN the course page loads, THE System SHALL display the video player in a larger format optimized for viewing
+3. WHEN the course page displays, THE System SHALL show course title, description, module count, and instructor information if available
+4. WHEN a video is from YouTube, THE System SHALL provide an "Open in YouTube" button that opens the video in a new tab
+5. WHEN a video is from Vimeo or other platforms, THE System SHALL provide appropriate external link options
+6. WHEN the course page loads, THE System SHALL display a comments section below the video
+7. THE System SHALL maintain the glassmorphism aesthetic and dark theme on the course page
+
+### Requirement 14: Course Comments System
+
+**User Story:** As a user, I want to comment on courses, so that I can ask questions and engage with other learners.
+
+#### Acceptance Criteria
+
+1. WHEN a user views a course page, THE System SHALL display all existing comments for that course in chronological order (newest first)
+2. WHEN an authenticated user views a course page, THE System SHALL display a comment input field
+3. WHEN a user submits a comment, THE System SHALL save it to the Content_Database with user ID, course ID, comment text, and timestamp
+4. WHEN a comment is submitted, THE System SHALL display it immediately without requiring page reload
+5. WHEN a comment is displayed, THE System SHALL show the commenter's name, profile photo, comment text, and relative timestamp (e.g., "2 hours ago")
+6. WHEN a user is the author of a comment, THE System SHALL display a delete button for that comment
+7. WHEN a user deletes their comment, THE System SHALL remove it from the Content_Database and update the UI immediately
+8. WHEN a course has no comments, THE System SHALL display a message encouraging users to be the first to comment
+
+### Requirement 15: UI Consistency and Aesthetics
 
 **User Story:** As a designer, I want all new features to match the existing UI aesthetic, so that the application maintains visual consistency.
 
@@ -160,3 +217,5 @@ This specification defines the authentication and admin functionality for the AI
 3. WHEN the Video_Player is displayed, THE System SHALL use the dark theme and maintain the editorial aesthetic
 4. WHEN forms are displayed in the Admin_Dashboard, THE System SHALL use consistent input styling with the rest of the application
 5. WHEN animations occur in new features, THE System SHALL use motion/react with timing consistent with existing page transitions
+6. WHEN the course page is displayed, THE System SHALL use the same glassmorphism cards and editorial typography
+7. WHEN the payment modal is displayed, THE System SHALL use glassmorphism styling consistent with the rest of the application

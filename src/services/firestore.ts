@@ -8,11 +8,16 @@ import {
   deleteDoc,
   DocumentData,
   QueryDocumentSnapshot,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  Unsubscribe,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { DesignItem, CinematicImage } from '../data';
 
-// Course interface with videoUrl field
+// Course interface with videoUrl field and monetization fields
 export interface Course {
   id: string;
   title: string;
@@ -21,6 +26,32 @@ export interface Course {
   isFree: boolean;
   videoUrl?: string;
   thumbnail?: string;
+  freeTrialDays?: number;
+  freeTrialStartDate?: Date;
+  priceAfterTrial?: number;
+  currency?: string;
+}
+
+// CourseAccess interface for tracking user purchases
+export interface CourseAccess {
+  id: string;
+  userId: string;
+  courseId: string;
+  purchaseDate: Date;
+  paymentReference: string;
+  amount: number;
+  currency: string;
+}
+
+// Comment interface for course comments
+export interface Comment {
+  id: string;
+  courseId: string;
+  userId: string;
+  userName: string;
+  userPhotoURL: string;
+  text: string;
+  timestamp: Date;
 }
 
 // Collection names
@@ -28,11 +59,45 @@ const COLLECTIONS = {
   DESIGNS: 'designs',
   CINEMATICS: 'cinematics',
   COURSES: 'courses',
+  COURSE_ACCESS: 'courseAccess',
+  COMMENTS: 'comments',
 } as const;
 
 // Helper function to convert Firestore document to typed object
 function docToData<T>(doc: QueryDocumentSnapshot<DocumentData>): T {
   return { id: doc.id, ...doc.data() } as T;
+}
+
+/**
+ * Calculate trial expiration timestamp
+ * @param freeTrialStartDate - The date when the trial started
+ * @param freeTrialDays - Number of days for the trial
+ * @returns Date object representing when the trial expires, or null if no trial
+ */
+export function calculateTrialExpiration(freeTrialStartDate?: Date, freeTrialDays?: number): Date | null {
+  if (!freeTrialStartDate || !freeTrialDays || freeTrialDays <= 0) {
+    return null;
+  }
+  
+  const startDate = freeTrialStartDate instanceof Date ? freeTrialStartDate : new Date(freeTrialStartDate);
+  const expirationDate = new Date(startDate);
+  expirationDate.setDate(expirationDate.getDate() + freeTrialDays);
+  
+  return expirationDate;
+}
+
+/**
+ * Check if a course trial is currently active
+ * @param course - The course to check
+ * @returns true if trial is active, false otherwise
+ */
+export function isTrialActive(course: Course): boolean {
+  const expirationDate = calculateTrialExpiration(course.freeTrialStartDate, course.freeTrialDays);
+  if (!expirationDate) {
+    return false;
+  }
+  
+  return new Date() < expirationDate;
 }
 
 // ============================================================================
@@ -261,7 +326,13 @@ export async function getCourseById(id: string): Promise<Course | null> {
  */
 export async function createCourse(course: Omit<Course, 'id'>): Promise<string> {
   try {
-    const docRef = await addDoc(collection(db, COLLECTIONS.COURSES), course);
+    // Calculate trial start date if freeTrialDays is set
+    const courseData = { ...course };
+    if (courseData.freeTrialDays && courseData.freeTrialDays > 0) {
+      courseData.freeTrialStartDate = new Date();
+    }
+    
+    const docRef = await addDoc(collection(db, COLLECTIONS.COURSES), courseData);
     return docRef.id;
   } catch (error) {
     console.error('Error creating course:', error);
@@ -280,6 +351,12 @@ export async function updateCourse(id: string, course: Partial<Course>): Promise
     const docRef = doc(db, COLLECTIONS.COURSES, id);
     // Remove id from update data if present
     const { id: _, ...updateData } = course as Course;
+    
+    // If freeTrialDays is being updated and is greater than 0, set freeTrialStartDate to now
+    if (updateData.freeTrialDays && updateData.freeTrialDays > 0) {
+      updateData.freeTrialStartDate = new Date();
+    }
+    
     await updateDoc(docRef, updateData);
   } catch (error) {
     console.error(`Error updating course ${id}:`, error);
@@ -299,5 +376,150 @@ export async function deleteCourse(id: string): Promise<void> {
   } catch (error) {
     console.error(`Error deleting course ${id}:`, error);
     throw new Error(`Failed to delete course with ID ${id}`);
+  }
+}
+
+// ============================================================================
+// COURSE ACCESS
+// ============================================================================
+
+/**
+ * Check if a user has purchased access to a specific course
+ * @param userId - The user's ID
+ * @param courseId - The course ID
+ * @returns Promise resolving to true if user has access, false otherwise
+ * @throws Error if Firestore operation fails
+ */
+export async function checkCourseAccess(userId: string, courseId: string): Promise<boolean> {
+  try {
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.COURSE_ACCESS));
+    const purchases = querySnapshot.docs.map(doc => docToData<CourseAccess>(doc));
+    
+    // Check if user has purchased this course
+    return purchases.some(purchase => 
+      purchase.userId === userId && purchase.courseId === courseId
+    );
+  } catch (error) {
+    console.error(`Error checking course access for user ${userId} and course ${courseId}:`, error);
+    throw new Error('Failed to check course access');
+  }
+}
+
+/**
+ * Record a course purchase in Firestore
+ * @param purchase - Purchase data without ID
+ * @returns Promise resolving to the new document ID
+ * @throws Error if Firestore operation fails
+ */
+export async function recordCoursePurchase(purchase: Omit<CourseAccess, 'id'>): Promise<string> {
+  try {
+    const purchaseData = {
+      ...purchase,
+      purchaseDate: purchase.purchaseDate || new Date(),
+    };
+    
+    const docRef = await addDoc(collection(db, COLLECTIONS.COURSE_ACCESS), purchaseData);
+    return docRef.id;
+  } catch (error) {
+    console.error('Error recording course purchase:', error);
+    throw new Error('Failed to record course purchase in database');
+  }
+}
+
+/**
+ * Get all course purchases for a specific user
+ * @param userId - The user's ID
+ * @returns Promise resolving to array of CourseAccess
+ * @throws Error if Firestore operation fails
+ */
+export async function getUserPurchases(userId: string): Promise<CourseAccess[]> {
+  try {
+    const querySnapshot = await getDocs(collection(db, COLLECTIONS.COURSE_ACCESS));
+    const allPurchases = querySnapshot.docs.map(doc => docToData<CourseAccess>(doc));
+    
+    // Filter purchases for this user
+    return allPurchases.filter(purchase => purchase.userId === userId);
+  } catch (error) {
+    console.error(`Error fetching purchases for user ${userId}:`, error);
+    throw new Error('Failed to fetch user purchases from database');
+  }
+}
+
+// ============================================================================
+// COMMENTS
+// ============================================================================
+
+/**
+ * Get all comments for a specific course with real-time listener
+ * @param courseId - The course ID
+ * @param callback - Callback function to receive comment updates
+ * @returns Unsubscribe function to stop listening
+ * @throws Error if Firestore operation fails
+ */
+export function getComments(courseId: string, callback: (comments: Comment[]) => void): Unsubscribe {
+  try {
+    const commentsQuery = query(
+      collection(db, COLLECTIONS.COMMENTS),
+      where('courseId', '==', courseId),
+      orderBy('timestamp', 'desc')
+    );
+    
+    return onSnapshot(
+      commentsQuery,
+      (querySnapshot) => {
+        const comments = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            timestamp: data.timestamp?.toDate() || new Date(),
+          } as Comment;
+        });
+        callback(comments);
+      },
+      (error) => {
+        console.error(`Error fetching comments for course ${courseId}:`, error);
+        throw new Error('Failed to fetch comments from database');
+      }
+    );
+  } catch (error) {
+    console.error(`Error setting up comments listener for course ${courseId}:`, error);
+    throw new Error('Failed to set up comments listener');
+  }
+}
+
+/**
+ * Create a new comment in Firestore
+ * @param comment - Comment data without ID
+ * @returns Promise resolving to the new document ID
+ * @throws Error if Firestore operation fails
+ */
+export async function createComment(comment: Omit<Comment, 'id'>): Promise<string> {
+  try {
+    const commentData = {
+      ...comment,
+      timestamp: comment.timestamp || new Date(),
+    };
+    
+    const docRef = await addDoc(collection(db, COLLECTIONS.COMMENTS), commentData);
+    return docRef.id;
+  } catch (error) {
+    console.error('Error creating comment:', error);
+    throw new Error('Failed to create comment in database');
+  }
+}
+
+/**
+ * Delete a comment from Firestore
+ * @param commentId - The comment document ID
+ * @throws Error if Firestore operation fails
+ */
+export async function deleteComment(commentId: string): Promise<void> {
+  try {
+    const docRef = doc(db, COLLECTIONS.COMMENTS, commentId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    console.error(`Error deleting comment ${commentId}:`, error);
+    throw new Error(`Failed to delete comment with ID ${commentId}`);
   }
 }

@@ -1,13 +1,16 @@
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
-import { getCourses, type Course } from '../services/firestore';
-import VideoPlayer from '../components/VideoPlayer';
+import { useNavigate } from 'react-router-dom';
+import { getCourses, type Course, isTrialActive } from '../services/firestore';
+import FreeTrialTimer from '../components/FreeTrialTimer';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Learn() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -26,6 +29,17 @@ export default function Learn() {
 
     fetchCourses();
   }, []);
+
+  // Handle course click - navigate to course page
+  const handleCourseClick = (course: Course) => {
+    if (!user) {
+      setError('Please sign in to access courses');
+      return;
+    }
+
+    // Navigate to the course page
+    navigate(`/course/${course.id}`);
+  };
 
   if (loading) {
     return (
@@ -82,7 +96,7 @@ export default function Learn() {
             <div className="absolute top-0 left-0 w-full h-[1px] bg-white/[0.05] group-hover:bg-white/20 transition-colors duration-500" />
             
             <div className="py-8 sm:py-12 grid grid-cols-1 md:grid-cols-[200px_80px_1fr_160px] lg:grid-cols-[280px_100px_1fr_200px] gap-4 sm:gap-6 md:gap-8 items-start cursor-pointer hover:bg-white/[0.01] transition-colors p-3 sm:p-4 -mx-3 sm:-mx-4 rounded-xl"
-              onClick={() => setSelectedCourse(course)}
+              onClick={() => handleCourseClick(course)}
             >
               
               {/* Thumbnail Image */}
@@ -119,10 +133,30 @@ export default function Learn() {
 
               {/* Action / Badge */}
               <div className="md:text-right pt-0 sm:pt-2 flex md:block flex-row items-center justify-between gap-3">
-                <div>
-                  <span className={`inline-block px-2 sm:px-3 py-1 editable-label border rounded-full text-xs ${course.isFree ? 'border-white !text-white' : 'border-white/10 text-white/40'}`}>
-                    {course.isFree ? 'Free' : 'Pro'}
-                  </span>
+                <div className="flex flex-col gap-2 items-start md:items-end">
+                  {/* Free Trial Timer */}
+                  {course.freeTrialDays && course.freeTrialDays > 0 && isTrialActive(course) && (
+                    <FreeTrialTimer course={course} />
+                  )}
+                  
+                  {/* Course Status Badge */}
+                  {course.isFree ? (
+                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-white !text-white rounded-full text-xs">
+                      Free
+                    </span>
+                  ) : course.freeTrialDays && course.freeTrialDays > 0 && isTrialActive(course) ? (
+                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-blue-500/30 text-blue-300 rounded-full text-xs">
+                      Free for {course.freeTrialDays} days
+                    </span>
+                  ) : course.priceAfterTrial && course.priceAfterTrial > 0 ? (
+                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-white/10 text-white/60 rounded-full text-xs">
+                      {course.currency || 'USD'} {course.priceAfterTrial.toFixed(2)}
+                    </span>
+                  ) : (
+                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-white/10 text-white/40 rounded-full text-xs">
+                      Pro
+                    </span>
+                  )}
                 </div>
                 <div className="md:mt-8 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <span className="editable-label !text-white/60 text-xs sm:text-sm">
@@ -135,14 +169,6 @@ export default function Learn() {
           </motion.div>
         ))}
       </div>
-
-      {/* Video Player Modal */}
-      {selectedCourse && (
-        <VideoPlayer 
-          course={selectedCourse} 
-          onClose={() => setSelectedCourse(null)} 
-        />
-      )}
     </div>
   );
 }

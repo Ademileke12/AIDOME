@@ -19,6 +19,7 @@ import LoadingScreen from './components/LoadingScreen';
 import Home from './pages/Home';
 import Gallery from './pages/Gallery';
 import Learn from './pages/Learn';
+import CoursePage from './pages/CoursePage';
 import DesignDetail from './pages/DesignDetail';
 import CinematicGallery from './pages/CinematicGallery';
 import CinematicDetail from './pages/CinematicDetail';
@@ -41,6 +42,7 @@ function AnimatedRoutes() {
         <Route path="/cinematic" element={<ProtectedRoute><CinematicGallery /></ProtectedRoute>} />
         <Route path="/cinematic/:id" element={<ProtectedRoute><CinematicDetail /></ProtectedRoute>} />
         <Route path="/learn" element={<ProtectedRoute><Learn /></ProtectedRoute>} />
+        <Route path="/course/:id" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} />
         <Route path="/design/:id" element={<ProtectedRoute><DesignDetail /></ProtectedRoute>} />
         
         {/* Admin route - requires authentication and admin privileges */}

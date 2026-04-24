@@ -273,7 +273,8 @@ This implementation plan breaks down the authentication and admin feature into i
     - Render ContentTable with courses
     - Implement create modal with ContentForm
     - Implement edit modal with ContentForm
-    - Implement delete confirmation dialog
+    - Implement delete con
+    firmation dialog
     - Handle all CRUD operations with loading and error states
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7_
   
@@ -285,7 +286,7 @@ This implementation plan breaks down the authentication and admin feature into i
     - **Property 12: Edit form pre-population**
     - **Validates: Requirements 4.4, 5.4, 6.4**
 
-- [~] 14. Checkpoint - Ensure admin dashboard CRUD operations work
+- [ ] 14. Checkpoint - Ensure admin dashboard CRUD operations work
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 15. Implement Video Player component
@@ -376,7 +377,181 @@ This implementation plan breaks down the authentication and admin feature into i
     - Test color contrast
     - Fix any accessibility issues
 
-- [~] 20. Final checkpoint - Ensure all functionality works end-to-end
+- [ ] 20. Final checkpoint - Ensure all functionality works end-to-end
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 21. Implement course monetization features
+  - [x] 21.1 Update Course interface and Firestore service
+    - Add freeTrialDays, freeTrialStartDate, priceAfterTrial, currency, thumbnail fields to Course interface
+    - Update createCourse and updateCourse to handle new fields
+    - Add logic to calculate trial expiration timestamp
+    - _Requirements: 11.1, 11.2, 11.7_
+  
+  - [x] 21.2 Update CourseManager admin form
+    - Add input fields for free trial days, price after trial, and currency
+    - Add logic to set freeTrialStartDate when freeTrialDays is set
+    - Add validation for price and currency fields
+    - Display current trial status and expiration date
+    - _Requirements: 11.1, 11.2_
+  
+  - [x] 21.3 Create FreeTrialTimer component
+    - Create src/components/FreeTrialTimer.tsx
+    - Calculate time remaining from freeTrialStartDate and freeTrialDays
+    - Update countdown every second
+    - Display days, hours, minutes remaining
+    - Show warning styling when < 24 hours remain
+    - Use glassmorphism badge styling
+    - _Requirements: 11.3, 11.4_
+  
+  - [x] 21.4 Update Learn page to show trial timers
+    - Import and use FreeTrialTimer component
+    - Display timer on courses with active free trials
+    - Show "Free for X days" badge on trial courses
+    - Show price badge on paid courses
+    - _Requirements: 11.3, 11.5_
+
+- [x] 22. Implement Paystack payment integration
+  - [x] 22.1 Set up Paystack configuration
+    - Add VITE_PAYSTACK_PUBLIC_KEY to environment variables
+    - Install @paystack/inline-js package
+    - Create src/services/paystack.ts with payment initialization logic
+    - _Requirements: 12.2, 12.7_
+  
+  - [x] 22.2 Create CourseAccess Firestore collection and service
+    - Add courseAccess collection to Firestore
+    - Implement checkCourseAccess(userId, courseId) function
+    - Implement recordCoursePurchase(purchase) function
+    - Implement getUserPurchases(userId) function
+    - _Requirements: 12.3, 12.4_
+  
+  - [x] 22.3 Create PaymentModal component
+    - Create src/components/PaymentModal.tsx
+    - Display course title and price
+    - Add "Pay with Paystack" button
+    - Initialize Paystack payment on button click
+    - Handle payment success callback
+    - Record purchase in Firestore on success
+    - Display success/error messages
+    - Use glassmorphism styling
+    - _Requirements: 12.1, 12.2, 12.3, 12.6_
+  
+  - [x] 22.4 Update Learn page to check course access
+    - Check if user has purchased course before opening
+    - Show PaymentModal if course requires payment and user hasn't purchased
+    - Allow access if course is free, in trial period, or user has purchased
+    - _Requirements: 12.4, 12.5_
+
+- [x] 23. Create dedicated course page
+  - [x] 23.1 Create CoursePage component
+    - Create src/pages/CoursePage.tsx
+    - Add route /course/:id to App.tsx
+    - Fetch course data by ID from Firestore
+    - Check user's access to course (free trial, purchased, or requires payment)
+    - Display PaymentModal if payment required
+    - Use glassmorphism styling for all sections
+    - _Requirements: 13.1, 13.2, 13.7_
+  
+  - [x] 23.2 Integrate video player in course page
+    - Import and use VideoPlayer component
+    - Display video in larger format optimized for viewing
+    - Add "Open in YouTube" button for YouTube videos
+    - Add external link options for other video platforms
+    - Display course title, description, and module count
+    - _Requirements: 13.3, 13.4, 13.5_
+  
+  - [x] 23.3 Update Learn page to navigate to course page
+    - Change course click handler to navigate to /course/:id
+    - Remove old VideoPlayer modal logic
+    - Maintain existing animations and styling
+    - _Requirements: 13.1_
+
+- [x] 24. Implement comments system
+  - [x] 24.1 Create Comments Firestore collection and service
+    - Add comments collection to Firestore
+    - Implement getComments(courseId) function with real-time listener
+    - Implement createComment(comment) function
+    - Implement deleteComment(commentId) function
+    - _Requirements: 14.3, 14.6, 14.7_
+  
+  - [x] 24.2 Create Comments component
+    - Create src/components/Comments.tsx
+    - Display list of comments with user info and timestamps
+    - Show relative timestamps (e.g., "2 hours ago")
+    - Add comment input textarea for authenticated users
+    - Add submit button
+    - Add delete button for user's own comments
+    - Display empty state message when no comments
+    - Use glassmorphism styling
+    - _Requirements: 14.1, 14.2, 14.5, 14.8_
+  
+  - [x] 24.3 Integrate comments in course page
+    - Import and use Comments component
+    - Display below video player
+    - Handle real-time comment updates
+    - Auto-scroll to new comments
+    - _Requirements: 13.6, 14.4_
+  
+  - [x] 24.4 Write unit tests for comments functionality
+    - Test comment submission
+    - Test comment deletion
+    - Test real-time updates
+    - Test empty state display
+    - _Requirements: 14.1-14.8_
+
+- [-] 25. Update Firestore security rules for new collections
+  - [x] 25.1 Add security rules for courseAccess collection
+    - Allow users to read their own purchases
+    - Allow admin to read all purchases
+    - Prevent users from writing directly (only through Cloud Functions or admin)
+    - _Requirements: 12.3_
+  
+  - [ ] 25.2 Add security rules for comments collection
+    - Allow authenticated users to read all comments
+    - Allow authenticated users to create comments
+    - Allow users to delete only their own comments
+    - Validate comment structure and required fields
+    - _Requirements: 14.3, 14.6, 14.7_
+
+- [ ] 26. Add notifications for trial expiration
+  - [ ] 26.1 Create notification system
+    - Create src/components/Notification.tsx for toast notifications
+    - Add notification context or use existing toast system
+    - _Requirements: 11.6_
+  
+  - [ ] 26.2 Implement trial expiration notifications
+    - Check for expired trials when user visits Learn page
+    - Show notification if user accessed course during trial and it has now expired
+    - Store notification dismissal state to avoid repeated notifications
+    - _Requirements: 11.6_
+
+- [ ] 27. Final testing and polish
+  - [ ] 27.1 Test payment flow end-to-end
+    - Test Paystack payment with test keys
+    - Verify purchase is recorded in Firestore
+    - Verify user gains access after purchase
+    - Test payment failure scenarios
+    - _Requirements: 12.1-12.6_
+  
+  - [ ] 27.2 Test free trial functionality
+    - Test trial countdown timer accuracy
+    - Test trial expiration and automatic status change
+    - Test notifications for expired trials
+    - _Requirements: 11.2-11.6_
+  
+  - [ ] 27.3 Test comments system
+    - Test comment posting and deletion
+    - Test real-time updates across multiple users
+    - Test comment display with user info
+    - _Requirements: 14.1-14.8_
+  
+  - [ ] 27.4 Test course page functionality
+    - Test navigation to course page
+    - Test video playback
+    - Test external YouTube link
+    - Test responsive design
+    - _Requirements: 13.1-13.7_
+
+- [ ] 28. Final checkpoint - Verify all new features work correctly
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
@@ -389,3 +564,7 @@ This implementation plan breaks down the authentication and admin feature into i
 - Firebase Emulator should be used for local testing to avoid hitting production
 - All new components should maintain the existing glassmorphism aesthetic and dark theme
 - Use motion/react for all animations to maintain consistency with existing pages
+- Paystack test keys should be used during development (get from Paystack dashboard)
+- Course monetization features (tasks 21-28) extend the base authentication and admin system
+- Comments use real-time Firestore listeners for instant updates across users
+- Free trial timers update every second and should be optimized to avoid performance issues
