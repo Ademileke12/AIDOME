@@ -74,12 +74,21 @@ function docToData<T>(doc: QueryDocumentSnapshot<DocumentData>): T {
  * @param freeTrialDays - Number of days for the trial
  * @returns Date object representing when the trial expires, or null if no trial
  */
-export function calculateTrialExpiration(freeTrialStartDate?: Date, freeTrialDays?: number): Date | null {
+export function calculateTrialExpiration(freeTrialStartDate?: any, freeTrialDays?: number): Date | null {
   if (!freeTrialStartDate || !freeTrialDays || freeTrialDays <= 0) {
     return null;
   }
   
-  const startDate = freeTrialStartDate instanceof Date ? freeTrialStartDate : new Date(freeTrialStartDate);
+  // Handle Firestore Timestamp objects
+  let startDate: Date;
+  if (typeof freeTrialStartDate === 'object' && 'toDate' in freeTrialStartDate) {
+    startDate = freeTrialStartDate.toDate();
+  } else if (freeTrialStartDate instanceof Date) {
+    startDate = freeTrialStartDate;
+  } else {
+    startDate = new Date(freeTrialStartDate);
+  }
+  
   const expirationDate = new Date(startDate);
   expirationDate.setDate(expirationDate.getDate() + freeTrialDays);
   
@@ -92,12 +101,49 @@ export function calculateTrialExpiration(freeTrialStartDate?: Date, freeTrialDay
  * @returns true if trial is active, false otherwise
  */
 export function isTrialActive(course: Course): boolean {
-  const expirationDate = calculateTrialExpiration(course.freeTrialStartDate, course.freeTrialDays);
-  if (!expirationDate) {
+  console.log('🔍 isTrialActive called with:', {
+    freeTrialDays: course.freeTrialDays,
+    freeTrialStartDate: course.freeTrialStartDate,
+    freeTrialStartDateType: typeof course.freeTrialStartDate,
+    hasToDate: course.freeTrialStartDate?.toDate ? 'yes' : 'no'
+  });
+  
+  // If no trial days set, trial is not active
+  if (!course.freeTrialDays || course.freeTrialDays <= 0) {
+    console.log('❌ No trial days set');
     return false;
   }
   
-  return new Date() < expirationDate;
+  // If trial days exist but no start date, assume trial just started (legacy courses)
+  let startDate = course.freeTrialStartDate;
+  
+  // Handle Firestore Timestamp objects
+  if (startDate && typeof startDate === 'object' && 'toDate' in startDate) {
+    console.log('🔄 Converting Firestore Timestamp to Date');
+    startDate = (startDate as any).toDate();
+  } else if (!startDate) {
+    console.log('⚠️ No start date - using current date');
+    startDate = new Date();
+  } else if (typeof startDate === 'string') {
+    console.log('🔄 Converting string to Date');
+    startDate = new Date(startDate);
+  }
+  
+  console.log('📅 Start date:', startDate);
+  
+  const expirationDate = calculateTrialExpiration(startDate, course.freeTrialDays);
+  console.log('📅 Expiration date:', expirationDate);
+  console.log('📅 Current date:', new Date());
+  
+  if (!expirationDate) {
+    console.log('❌ No expiration date calculated');
+    return false;
+  }
+  
+  const isActive = new Date() < expirationDate;
+  console.log('✅ Trial active:', isActive);
+  
+  return isActive;
 }
 
 // ============================================================================

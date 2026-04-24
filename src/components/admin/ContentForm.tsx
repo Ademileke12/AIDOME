@@ -138,7 +138,21 @@ export default function ContentForm({ type, initialData, onSubmit, onCancel }: C
   };
 
   const handleChange = (name: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    setFormData((prev: any) => {
+      const updated = { ...prev, [name]: value };
+      
+      // If setting freeTrialDays > 0 and no freeTrialStartDate exists, set it to now
+      if (name === 'freeTrialDays' && value > 0 && !prev.freeTrialStartDate) {
+        updated.freeTrialStartDate = new Date();
+      }
+      
+      // If setting freeTrialDays to 0, clear the freeTrialStartDate
+      if (name === 'freeTrialDays' && value === 0) {
+        updated.freeTrialStartDate = null;
+      }
+      
+      return updated;
+    });
     
     // Clear error for this field
     setErrors((prev) => {
@@ -617,10 +631,31 @@ export default function ContentForm({ type, initialData, onSubmit, onCancel }: C
                     {formData.freeTrialStartDate && formData.freeTrialDays > 0 && (
                       <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
                         <p className="text-sm text-blue-300">
-                          Trial started: {new Date(formData.freeTrialStartDate).toLocaleDateString()}
+                          Trial started: {(() => {
+                            try {
+                              // Handle Firestore Timestamp objects
+                              const date = formData.freeTrialStartDate?.toDate 
+                                ? formData.freeTrialStartDate.toDate() 
+                                : new Date(formData.freeTrialStartDate);
+                              return date.toLocaleDateString();
+                            } catch {
+                              return 'Invalid Date';
+                            }
+                          })()}
                         </p>
                         <p className="text-sm text-blue-300">
-                          Expires: {new Date(new Date(formData.freeTrialStartDate).getTime() + formData.freeTrialDays * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                          Expires: {(() => {
+                            try {
+                              // Handle Firestore Timestamp objects
+                              const startDate = formData.freeTrialStartDate?.toDate 
+                                ? formData.freeTrialStartDate.toDate() 
+                                : new Date(formData.freeTrialStartDate);
+                              const expirationDate = new Date(startDate.getTime() + formData.freeTrialDays * 24 * 60 * 60 * 1000);
+                              return expirationDate.toLocaleDateString();
+                            } catch {
+                              return 'Invalid Date';
+                            }
+                          })()}
                         </p>
                       </div>
                     )}

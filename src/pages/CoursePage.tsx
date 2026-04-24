@@ -53,12 +53,43 @@ export default function CoursePage() {
         // 2. Course has active free trial
         // 3. User has purchased the course
         
+        console.log('🔍 Course access check:', {
+          title: courseData.title,
+          isFree: courseData.isFree,
+          freeTrialDays: courseData.freeTrialDays,
+          freeTrialStartDate: courseData.freeTrialStartDate,
+          hasStartDate: !!courseData.freeTrialStartDate
+        });
+        
         if (courseData.isFree) {
+          console.log('✅ Course is free - granting access');
           setHasAccess(true);
-        } else if (courseData.freeTrialDays && courseData.freeTrialDays > 0 && isTrialActive(courseData)) {
-          setHasAccess(true);
+          setShowPaymentModal(false);
+        } else if (courseData.freeTrialDays && courseData.freeTrialDays > 0) {
+          // If trial days exist but no start date, assume trial starts now
+          if (!courseData.freeTrialStartDate) {
+            console.log('⚠️ Trial days exist but no start date - setting to now');
+            courseData.freeTrialStartDate = new Date();
+          }
+          
+          // Check if trial is active
+          const trialActive = isTrialActive(courseData);
+          console.log('🔍 Trial active check:', trialActive);
+          
+          if (trialActive) {
+            console.log('✅ Trial is active - granting access');
+            setHasAccess(true);
+            setShowPaymentModal(false);
+          } else {
+            console.log('❌ Trial expired - checking purchase');
+            // Trial has expired, check if user purchased
+            const purchased = await checkCourseAccess(user.uid, courseData.id);
+            setHasAccess(purchased);
+            setShowPaymentModal(!purchased);
+          }
         } else {
-          // Check if user has purchased
+          console.log('💰 No trial - checking purchase');
+          // No trial, check if user has purchased
           const purchased = await checkCourseAccess(user.uid, courseData.id);
           setHasAccess(purchased);
           
@@ -146,10 +177,10 @@ export default function CoursePage() {
       >
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-6">
           <div className="flex-1">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.1] mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.1] mb-4 sm:mb-6">
               {course.title}
             </h1>
-            <p className="text-white/60 text-base sm:text-lg md:text-xl leading-relaxed max-w-3xl">
+            <p className="text-white/60 text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl whitespace-pre-line">
               {course.description}
             </p>
           </div>
