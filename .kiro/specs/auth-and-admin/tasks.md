@@ -183,7 +183,7 @@ This implementation plan breaks down the authentication and admin feature into i
     - Add error handling and error message display
     - _Requirements: 8.3, 8.7_
   
-  - [ ] 9.3 Update Learn page to use Firestore
+  - [x] 9.3 Update Learn page to use Firestore
     - Import Firestore service
     - Replace static data import with getCourses() call
     - Add loading state while fetching
@@ -512,39 +512,39 @@ This implementation plan breaks down the authentication and admin feature into i
     - Validate comment structure and required fields
     - _Requirements: 14.3, 14.6, 14.7_
 
-- [ ] 26. Add notifications for trial expiration
-  - [ ] 26.1 Create notification system
+- [x] 26. Add notifications for trial expiration
+  - [x] 26.1 Create notification system
     - Create src/components/Notification.tsx for toast notifications
     - Add notification context or use existing toast system
     - _Requirements: 11.6_
   
-  - [ ] 26.2 Implement trial expiration notifications
+  - [x] 26.2 Implement trial expiration notifications
     - Check for expired trials when user visits Learn page
     - Show notification if user accessed course during trial and it has now expired
     - Store notification dismissal state to avoid repeated notifications
     - _Requirements: 11.6_
 
-- [ ] 27. Final testing and polish
-  - [ ] 27.1 Test payment flow end-to-end
+- [-] 27. Final testing and polish
+  - [x] 27.1 Test payment flow end-to-end
     - Test Paystack payment with test keys
     - Verify purchase is recorded in Firestore
     - Verify user gains access after purchase
     - Test payment failure scenarios
     - _Requirements: 12.1-12.6_
   
-  - [ ] 27.2 Test free trial functionality
+  - [x] 27.2 Test free trial functionality
     - Test trial countdown timer accuracy
     - Test trial expiration and automatic status change
     - Test notifications for expired trials
     - _Requirements: 11.2-11.6_
   
-  - [ ] 27.3 Test comments system
+  - [x] 27.3 Test comments system
     - Test comment posting and deletion
     - Test real-time updates across multiple users
     - Test comment display with user info
     - _Requirements: 14.1-14.8_
   
-  - [ ] 27.4 Test course page functionality
+  - [x] 27.4 Test course page functionality
     - Test navigation to course page
     - Test video playback
     - Test external YouTube link

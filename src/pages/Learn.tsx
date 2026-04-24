@@ -1,16 +1,69 @@
 import { motion } from 'motion/react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCourses, type Course, isTrialActive } from '../services/firestore';
+import { getCourses, type Course, isTrialActive, calculateTrialExpiration } from '../services/firestore';
 import FreeTrialTimer from '../components/FreeTrialTimer';
 import { useAuth } from '../contexts/AuthContext';
+import { useNotification } from '../components/Notification';
 
 export default function Learn() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { info } = useNotification();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Check for expired trials and show notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const checkExpiredTrials = () => {
+      // Get accessed courses from localStorage
+      const accessedCoursesKey = `accessed_courses_${user.uid}`;
+      const accessedCoursesStr = localStorage.getItem(accessedCoursesKey);
+      
+      if (!accessedCoursesStr) return;
+
+      const accessedCourses: { courseId: string; accessedAt: string }[] = JSON.parse(accessedCoursesStr);
+      
+      // Get dismissed notifications from localStorage
+      const dismissedKey = `dismissed_trial_notifications_${user.uid}`;
+      const dismissedStr = localStorage.getItem(dismissedKey);
+      const dismissedNotifications: string[] = dismissedStr ? JSON.parse(dismissedStr) : [];
+
+      // Check each accessed course for expired trials
+      courses.forEach(course => {
+        // Skip if already dismissed
+        if (dismissedNotifications.includes(course.id)) return;
+
+        // Check if user accessed this course
+        const accessRecord = accessedCourses.find(ac => ac.courseId === course.id);
+        if (!accessRecord) return;
+
+        // Check if course had a trial and it's now expired
+        if (course.freeTrialDays && course.freeTrialDays > 0 && course.freeTrialStartDate) {
+          const wasTrialActive = isTrialActive(course);
+          const expirationDate = calculateTrialExpiration(course.freeTrialStartDate, course.freeTrialDays);
+          
+          // If trial has expired
+          if (!wasTrialActive && expirationDate && new Date() >= expirationDate) {
+            // Show notification
+            info(`The free trial for "${course.title}" has ended. Payment is now required to continue accessing this course.`);
+            
+            // Mark as dismissed
+            dismissedNotifications.push(course.id);
+            localStorage.setItem(dismissedKey, JSON.stringify(dismissedNotifications));
+          }
+        }
+      });
+    };
+
+    // Check for expired trials when courses are loaded
+    if (courses.length > 0) {
+      checkExpiredTrials();
+    }
+  }, [courses, user, info]);
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -36,6 +89,26 @@ export default function Learn() {
       setError('Please sign in to access courses');
       return;
     }
+
+    // Track that user accessed this course
+    const accessedCoursesKey = `accessed_courses_${user.uid}`;
+    const accessedCoursesStr = localStorage.getItem(accessedCoursesKey);
+    const accessedCourses: { courseId: string; accessedAt: string }[] = accessedCoursesStr 
+      ? JSON.parse(accessedCoursesStr) 
+      : [];
+
+    // Add or update access record
+    const existingIndex = accessedCourses.findIndex(ac => ac.courseId === course.id);
+    if (existingIndex >= 0) {
+      accessedCourses[existingIndex].accessedAt = new Date().toISOString();
+    } else {
+      accessedCourses.push({
+        courseId: course.id,
+        accessedAt: new Date().toISOString(),
+      });
+    }
+
+    localStorage.setItem(accessedCoursesKey, JSON.stringify(accessedCourses));
 
     // Navigate to the course page
     navigate(`/course/${course.id}`);
@@ -127,7 +200,9 @@ export default function Learn() {
                   {course.title}
                 </h2>
                 <p className="mt-4 sm:mt-6 text-white/50 text-xs sm:text-sm md:text-base leading-relaxed max-w-xl text-balance">
-                  {course.description}
+                  {course.description.length > 120 
+                    ? `${course.description.substring(0, 120)}...` 
+                    : course.description}
                 </p>
               </div>
 

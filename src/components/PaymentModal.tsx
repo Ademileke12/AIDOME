@@ -33,10 +33,12 @@ export default function PaymentModal({ course, onSuccess, onClose }: PaymentModa
     setError(null);
 
     try {
+      const amountInSmallestUnit = convertToSmallestUnit(course.priceAfterTrial);
+      
       // Initialize Paystack payment
       initializePaystackPayment({
         email: user.email,
-        amount: convertToSmallestUnit(course.priceAfterTrial),
+        amount: amountInSmallestUnit,
         currency: course.currency || 'NGN',
         metadata: {
           courseId: course.id,
