@@ -498,14 +498,14 @@ This implementation plan breaks down the authentication and admin feature into i
     - Test empty state display
     - _Requirements: 14.1-14.8_
 
-- [-] 25. Update Firestore security rules for new collections
+- [x] 25. Update Firestore security rules for new collections
   - [x] 25.1 Add security rules for courseAccess collection
     - Allow users to read their own purchases
     - Allow admin to read all purchases
     - Prevent users from writing directly (only through Cloud Functions or admin)
     - _Requirements: 12.3_
   
-  - [ ] 25.2 Add security rules for comments collection
+  - [x] 25.2 Add security rules for comments collection
     - Allow authenticated users to read all comments
     - Allow authenticated users to create comments
     - Allow users to delete only their own comments
