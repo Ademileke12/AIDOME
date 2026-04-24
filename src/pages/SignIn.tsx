@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -26,6 +26,21 @@ export default function SignIn() {
       setLoading(false);
     }
   };
+
+  // Auto-trigger sign-in popup on mobile devices
+  useEffect(() => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const hasAutoTriggered = sessionStorage.getItem('autoSignInTriggered');
+    
+    if (isMobile && !hasAutoTriggered && !loading) {
+      // Set flag to prevent multiple triggers
+      sessionStorage.setItem('autoSignInTriggered', 'true');
+      // Small delay to ensure page is fully loaded
+      setTimeout(() => {
+        handleSignIn();
+      }, 500);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 relative overflow-hidden">
