@@ -197,15 +197,26 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
               </div>
             </div>
           ) : embedUrl ? (
-            // iframe for YouTube/Vimeo
-            <iframe
-              ref={iframeRef}
-              src={embedUrl}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title={course.title}
-            />
+            // iframe for YouTube/Vimeo with overlay to hide branding
+            <div className="relative w-full h-full">
+              <iframe
+                ref={iframeRef}
+                src={embedUrl}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={course.title}
+              />
+              {/* Overlays to cover YouTube branding */}
+              {videoType === 'youtube' && (
+                <>
+                  {/* Cover top branding bar */}
+                  <div className="absolute top-0 left-0 right-0 h-10 bg-black pointer-events-none z-10" />
+                  {/* Cover bottom branding bar (More videos, YouTube logo) */}
+                  <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black via-black to-transparent pointer-events-none z-10" />
+                </>
+              )}
+            </div>
           ) : (
             // Invalid video URL
             <div className="absolute inset-0 flex items-center justify-center">
@@ -347,15 +358,21 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                   </div>
                 </div>
               ) : embedUrl ? (
-                // iframe for YouTube/Vimeo
-                <iframe
-                  ref={iframeRef}
-                  src={embedUrl}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  title={course.title}
-                />
+                // iframe for YouTube/Vimeo with overlay to hide branding
+                <div className="relative w-full h-full">
+                  <iframe
+                    ref={iframeRef}
+                    src={embedUrl}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title={course.title}
+                  />
+                  {/* Overlay to cover YouTube branding bar at top */}
+                  {videoType === 'youtube' && (
+                    <div className="absolute top-0 left-0 right-0 h-10 bg-black pointer-events-none z-10" />
+                  )}
+                </div>
               ) : (
                 // Invalid video URL
                 <div className="absolute inset-0 flex items-center justify-center">
