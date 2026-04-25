@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:security": "tsx scripts/testSecurityRules.ts",
-    "emulator": "firebase emulators:start"
+    "emulator": "firebase emulators:start",
+    "sitemap": "tsx scripts/generateSitemap.ts"
   },
   "dependencies": {
     "@google/genai": "^1.29.0",

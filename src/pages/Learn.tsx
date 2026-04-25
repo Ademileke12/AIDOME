@@ -5,6 +5,7 @@ import { getCourses, type Course, isTrialActive, calculateTrialExpiration } from
 import FreeTrialTimer from '../components/FreeTrialTimer';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../components/Notification';
+import SEO from '../components/SEO';
 
 export default function Learn() {
   const { user } = useAuth();
@@ -143,6 +144,21 @@ export default function Learn() {
 
   return (
     <div className="min-h-screen pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 md:px-12 max-w-[1200px] mx-auto">
+      <SEO
+        title="Learn - Design Courses & Tutorials"
+        description="Master web design and development with our comprehensive courses. Free and premium courses covering UI/UX design, web development, and modern design principles."
+        keywords={[
+          'design courses',
+          'web design learning',
+          'UI UX courses',
+          'online design education',
+          'web development courses',
+          'design tutorials',
+          'learn web design'
+        ]}
+        type="website"
+      />
+      
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

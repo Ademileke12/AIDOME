@@ -7,6 +7,7 @@ import VideoPlayer from '../components/VideoPlayer';
 import PaymentModal from '../components/PaymentModal';
 import FreeTrialTimer from '../components/FreeTrialTimer';
 import Comments from '../components/Comments';
+import SEO, { generateStructuredData } from '../components/SEO';
 
 export default function CoursePage() {
   const { id } = useParams<{ id: string }>();
@@ -84,6 +85,7 @@ export default function CoursePage() {
             console.log('❌ Trial expired - checking purchase');
             // Trial has expired, check if user purchased
             const purchased = await checkCourseAccess(user.uid, courseData.id);
+            console.log('💰 Purchase check result:', purchased);
             setHasAccess(purchased);
             setShowPaymentModal(!purchased);
           }
@@ -91,6 +93,7 @@ export default function CoursePage() {
           console.log('💰 No trial - checking purchase');
           // No trial, check if user has purchased
           const purchased = await checkCourseAccess(user.uid, courseData.id);
+          console.log('💰 Purchase check result:', purchased);
           setHasAccess(purchased);
           
           // If no access, show payment modal
@@ -98,6 +101,11 @@ export default function CoursePage() {
             setShowPaymentModal(true);
           }
         }
+        
+        console.log('🎯 Final access decision:', {
+          hasAccess: courseData.isFree || (courseData.freeTrialDays && courseData.freeTrialDays > 0 && isTrialActive(courseData)),
+          willShowComments: courseData.isFree || (courseData.freeTrialDays && courseData.freeTrialDays > 0 && isTrialActive(courseData))
+        });
       } catch (err) {
         console.error('Error fetching course:', err);
         setError('Failed to load course. Please try again later.');
@@ -149,6 +157,25 @@ export default function CoursePage() {
 
   return (
     <div className="min-h-screen pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 md:px-12 max-w-[1400px] mx-auto">
+      {course && (
+        <SEO
+          title={`${course.title} - Online Course`}
+          description={course.description}
+          keywords={['online course', 'design course', 'web development', course.title, 'learn design']}
+          type="article"
+          image={course.thumbnail}
+          structuredData={generateStructuredData.course({
+            title: course.title,
+            description: course.description,
+            provider: 'AI Dome',
+            url: window.location.href,
+            image: course.thumbnail,
+            price: course.isFree ? 0 : course.priceAfterTrial,
+            currency: course.currency || 'USD',
+          })}
+        />
+      )}
+      
       {/* Back button */}
       <motion.button
         initial={{ opacity: 0, x: -20 }}
@@ -242,6 +269,13 @@ export default function CoursePage() {
         >
           <Comments courseId={course.id} />
         </motion.div>
+      )}
+      
+      {/* Debug info */}
+      {!hasAccess && (
+        <div className="mt-12 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg text-yellow-300 text-sm">
+          ⚠️ Comments hidden - User does not have access to this course
+        </div>
       )}
 
       {/* Payment modal */}

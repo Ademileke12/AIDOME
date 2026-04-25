@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { getDesigns, getCourses, getCinematics } from '../services/firestore';
 import { DesignItem, CinematicImage } from '../data';
 import { Course } from '../services/firestore';
+import SEO, { generateStructuredData } from '../components/SEO';
 
 export default function Home() {
   const containerRef = useRef(null);
@@ -68,6 +69,31 @@ export default function Home() {
 
   return (
     <div ref={containerRef} className="min-h-screen">
+      <SEO
+        title="AI Dome - Premium Design Gallery & Learning Platform"
+        description="Explore curated premium web interfaces, cinematic environments, and professional design courses. Learn from industry experts and elevate your design skills with AI Dome."
+        keywords={[
+          'web design',
+          'UI design',
+          'UX design',
+          'design courses',
+          'premium templates',
+          'design learning',
+          'cinematic design',
+          'web development',
+          'design gallery',
+          'design education',
+          'online courses',
+          'design portfolio'
+        ]}
+        type="website"
+        structuredData={generateStructuredData.website(
+          'AI Dome',
+          window.location.origin,
+          'Premium design gallery and learning platform for web designers and developers'
+        )}
+      />
+      
       {/* Hero Section */}
       <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden -mt-16 sm:mt-0">
         {/* Abstract 3D Background - Emulated with CSS and image */}

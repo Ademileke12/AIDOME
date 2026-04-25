@@ -504,6 +504,8 @@ export async function getUserPurchases(userId: string): Promise<CourseAccess[]> 
  */
 export function getComments(courseId: string, callback: (comments: Comment[]) => void): Unsubscribe {
   try {
+    console.log('🔍 Setting up comments query for courseId:', courseId);
+    
     const commentsQuery = query(
       collection(db, COLLECTIONS.COMMENTS),
       where('courseId', '==', courseId),
@@ -513,23 +515,37 @@ export function getComments(courseId: string, callback: (comments: Comment[]) =>
     return onSnapshot(
       commentsQuery,
       (querySnapshot) => {
+        console.log('📦 Received snapshot with', querySnapshot.docs.length, 'documents');
+        
         const comments = querySnapshot.docs.map(doc => {
           const data = doc.data();
+          console.log('📄 Comment doc:', doc.id, data);
           return {
             id: doc.id,
             ...data,
             timestamp: data.timestamp?.toDate() || new Date(),
           } as Comment;
         });
+        
+        console.log('✅ Processed comments:', comments);
         callback(comments);
       },
       (error) => {
-        console.error(`Error fetching comments for course ${courseId}:`, error);
-        throw new Error('Failed to fetch comments from database');
+        console.error(`❌ Error in comments snapshot listener for course ${courseId}:`, error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        
+        // If it's an index error, provide helpful message
+        if (error.message.includes('index')) {
+          console.error('🔥 FIRESTORE INDEX REQUIRED! Create index at:', error.message);
+        }
+        
+        // Call callback with empty array on error so UI doesn't break
+        callback([]);
       }
     );
   } catch (error) {
-    console.error(`Error setting up comments listener for course ${courseId}:`, error);
+    console.error(`❌ Error setting up comments listener for course ${courseId}:`, error);
     throw new Error('Failed to set up comments listener');
   }
 }

@@ -76,14 +76,13 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
     if (videoType === 'youtube') {
       const videoId = getYouTubeId(course.videoUrl);
       // Use youtube-nocookie.com for privacy-enhanced mode
-      // Additional parameters to restrict functionality:
-      // - rel=0: Don't show related videos
+      // Parameters for full functionality:
+      // - rel=0: Don't show related videos from other channels
       // - modestbranding=1: Minimal YouTube branding
-      // - showinfo=0: Hide video info
-      // - fs=0: Hide fullscreen button
-      // - disablekb=1: Disable keyboard controls
+      // - fs=1: Enable fullscreen button (default, but explicit)
+      // - controls=1: Show player controls
       // - iv_load_policy=3: Disable video annotations
-      return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=0&rel=0&modestbranding=1&showinfo=0&fs=0&disablekb=1&controls=1&iv_load_policy=3` : null;
+      return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&fs=1&controls=1&iv_load_policy=3` : null;
     }
     
     if (videoType === 'vimeo') {
@@ -132,7 +131,7 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
     return (
       <div className="w-full">
         {/* Video container */}
-        <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+        <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden" role="region" aria-label="Course video player">
           {!course.videoUrl ? (
             // No video URL message
             <div className="absolute inset-0 flex items-center justify-center">
@@ -157,13 +156,16 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
               </div>
             </div>
           ) : videoType === 'direct' ? (
-            // HTML5 video player for direct video files
+            // HTML5 video player for direct video files - fully accessible
             <video
               ref={videoRef}
               controls
+              controlsList="nodownload" // Optional: prevent download if needed
               className="w-full h-full"
               src={course.videoUrl}
+              aria-label={`Video player for ${course.title}`}
             >
+              <track kind="captions" />
               Your browser does not support the video tag.
             </video>
           ) : videoType === 'twitter' && embedUrl ? (
@@ -173,9 +175,10 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                 ref={iframeRef}
                 src={embedUrl}
                 className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                 allowFullScreen
-                title={course.title}
+                title={`${course.title} - X (Twitter) Video`}
+                aria-label={`X (Twitter) video player for ${course.title}`}
                 sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
               />
               
@@ -197,26 +200,16 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
               </div>
             </div>
           ) : embedUrl ? (
-            // iframe for YouTube/Vimeo with overlay to hide branding
-            <div className="relative w-full h-full">
-              <iframe
-                ref={iframeRef}
-                src={embedUrl}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                title={course.title}
-              />
-              {/* Overlays to cover YouTube branding */}
-              {videoType === 'youtube' && (
-                <>
-                  {/* Cover top branding bar */}
-                  <div className="absolute top-0 left-0 right-0 h-10 bg-black pointer-events-none z-10" />
-                  {/* Cover bottom branding bar (More videos, YouTube logo) */}
-                  <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black via-black to-transparent pointer-events-none z-10" />
-                </>
-              )}
-            </div>
+            // iframe for YouTube/Vimeo - fully accessible with all controls
+            <iframe
+              ref={iframeRef}
+              src={embedUrl}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              allowFullScreen
+              title={`${course.title} - Course Video`}
+              aria-label={`Video player for ${course.title}`}
+            />
           ) : (
             // Invalid video URL
             <div className="absolute inset-0 flex items-center justify-center">
@@ -293,7 +286,7 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
           {/* Video player card */}
           <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg sm:rounded-2xl overflow-hidden shadow-2xl">
             {/* Video container */}
-            <div className="relative w-full aspect-video bg-black">
+            <div className="relative w-full aspect-video bg-black" role="region" aria-label="Course video player">
               {!course.videoUrl ? (
                 // No video URL message
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -318,13 +311,16 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                   </div>
                 </div>
               ) : videoType === 'direct' ? (
-                // HTML5 video player for direct video files
+                // HTML5 video player for direct video files - fully accessible
                 <video
                   ref={videoRef}
                   controls
+                  controlsList="nodownload" // Optional: prevent download if needed
                   className="w-full h-full"
                   src={course.videoUrl}
+                  aria-label={`Video player for ${course.title}`}
                 >
+                  <track kind="captions" />
                   Your browser does not support the video tag.
                 </video>
               ) : videoType === 'twitter' && embedUrl ? (
@@ -334,9 +330,10 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                     ref={iframeRef}
                     src={embedUrl}
                     className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                     allowFullScreen
-                    title={course.title}
+                    title={`${course.title} - X (Twitter) Video`}
+                    aria-label={`X (Twitter) video player for ${course.title}`}
                     sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                   />
                   
@@ -358,21 +355,16 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                   </div>
                 </div>
               ) : embedUrl ? (
-                // iframe for YouTube/Vimeo with overlay to hide branding
-                <div className="relative w-full h-full">
-                  <iframe
-                    ref={iframeRef}
-                    src={embedUrl}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    title={course.title}
-                  />
-                  {/* Overlay to cover YouTube branding bar at top */}
-                  {videoType === 'youtube' && (
-                    <div className="absolute top-0 left-0 right-0 h-10 bg-black pointer-events-none z-10" />
-                  )}
-                </div>
+                // iframe for YouTube/Vimeo - fully accessible with all controls
+                <iframe
+                  ref={iframeRef}
+                  src={embedUrl}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                  allowFullScreen
+                  title={`${course.title} - Course Video`}
+                  aria-label={`Video player for ${course.title}`}
+                />
               ) : (
                 // Invalid video URL
                 <div className="absolute inset-0 flex items-center justify-center">

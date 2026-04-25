@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getDesigns } from '../services/firestore';
 import { DesignItem } from '../data';
+import SEO from '../components/SEO';
 
 type FilterType = 'All' | 'Premium' | 'Free';
 
@@ -38,6 +39,22 @@ export default function Gallery() {
 
   return (
     <div className="min-h-screen pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 md:px-12 max-w-[1600px] mx-auto">
+      <SEO
+        title="Design Gallery - Premium Web Interfaces & UI Components"
+        description="Explore our curated collection of premium web design interfaces, UI components, and design patterns. Free and premium templates for modern web projects."
+        keywords={[
+          'web design gallery',
+          'UI components',
+          'design patterns',
+          'premium templates',
+          'web interfaces',
+          'design inspiration',
+          'UI design',
+          'modern web design'
+        ]}
+        type="website"
+      />
+      
       <motion.div 
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
