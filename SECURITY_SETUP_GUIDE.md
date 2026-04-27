@@ -1,300 +1,394 @@
 # Course Payment Security - Setup Guide
 
-## Overview
-This guide walks you through setting up comprehensive security for your course payment system to prevent unauthorized access and payment bypass attempts.
+## 🎯 Overview
 
-## Prerequisites
-- Firebase project set up
-- Paystack account with API keys
-- Node.js 18+ installed
-- Firebase CLI installed (`npm install -g firebase-tools`)
+This guide will walk you through setting up the complete security system for your course payment platform. Follow these steps in order to ensure maximum security.
 
-## Step 1: Deploy Enhanced Firestore Security Rules
+## ✅ What You Already Have
 
-### 1.1 Review the Rules
-The enhanced `firestore.rules` file includes:
-- Server-side trial expiration validation
-- Purchase verification before granting access
-- Protected comment access (only for users with course access)
-- Audit trail protection (purchase records can't be modified)
+Your system already includes:
+- ✅ Firestore security rules
+- ✅ Cloud Functions for payment verification
+- ✅ Client-side access control
+- ✅ Real-time trial monitoring
+- ✅ Payment modal enforcement
 
-### 1.2 Deploy the Rules
+## 🚀 Setup Steps
+
+### Step 1: Configure Paystack Secret Key
+
+The Cloud Functions need your Paystack secret key to verify payment webhooks.
+
+```bash
+# Set the Paystack secret key
+firebase functions:config:set paystack.secret_key="YOUR_PAYSTACK_SECRET_KEY"
+
+# Verify it was set correctly
+firebase functions:config:get
+```
+
+**Where to find your Paystack secret key:**
+1. Go to [Paystack Dashboard](https://dashboard.paystack.com)
+2. Navigate to Settings → API Keys & Webhooks
+3. Copy your **Secret Key** (starts with `sk_`)
+4. Use the **Test Secret Key** for testing, **Live Secret Key** for production
+
+### Step 2: Deploy Firestore Security Rules
+
+Deploy the security rules to protect your database.
+
+```bash
+# Deploy Firestore rules
+firebase deploy --only firestore:rules
+
+# This will deploy the rules from firestore.rules file
+```
+
+**Verify deployment:**
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Select your project
+3. Navigate to Firestore Database → Rules
+4. Verify the rules are updated with the latest timestamp
+
+### Step 3: Install Cloud Functions Dependencies
+
+```bash
+# Navigate to functions directory
+cd functions
+
+# Install dependencies
+npm install
+
+# Build TypeScript
+npm run build
+```
+
+### Step 4: Deploy Cloud Functions
+
+```bash
+# Deploy all functions
+firebase deploy --only functions
+
+# Or deploy specific functions
+firebase deploy --only functions:paystackWebhook
+firebase deploy --only functions:getVideoUrl
+firebase deploy --only functions:grantCourseAccess
+firebase deploy --only functions:revokeCourseAccess
+firebase deploy --only functions:logVideoAccess
+```
+
+**Expected output:**
+```
+✔  functions[paystackWebhook(us-central1)] Successful create operation.
+✔  functions[getVideoUrl(us-central1)] Successful create operation.
+✔  functions[grantCourseAccess(us-central1)] Successful create operation.
+✔  functions[revokeCourseAccess(us-central1)] Successful create operation.
+✔  functions[logVideoAccess(us-central1)] Successful create operation.
+```
+
+**Note the webhook URL** - You'll need it for the next step:
+```
+https://YOUR_PROJECT_ID.cloudfunctions.net/paystackWebhook
+```
+
+### Step 5: Configure Paystack Webhook
+
+Configure Paystack to send payment notifications to your Cloud Function.
+
+1. Go to [Paystack Dashboard](https://dashboard.paystack.com)
+2. Navigate to Settings → API Keys & Webhooks
+3. Scroll to **Webhook URL** section
+4. Enter your webhook URL:
+   ```
+   https://YOUR_PROJECT_ID.cloudfunctions.net/paystackWebhook
+   ```
+5. Click **Save Changes**
+
+**Test the webhook:**
+1. In Paystack Dashboard, go to Webhooks section
+2. Click **Test Webhook**
+3. Check Cloud Function logs: `firebase functions:log`
+4. Verify webhook was received and processed
+
+### Step 6: Configure Admin Emails
+
+Set up admin emails for access control.
+
+**Option A: Environment Variables (Recommended)**
+
+Update your `.env` file:
+```env
+VITE_ADMIN_EMAILS=admin1@example.com,admin2@example.com
+```
+
+**Option B: Firestore Rules**
+
+Edit `firestore.rules` and add admin emails:
+```javascript
+function isAdmin() {
+  return isAuthenticated() && 
+         request.auth.token.email in [
+           'samuelabudu21@gmail.com',
+           'your-admin@example.com'
+         ];
+}
+```
+
+Then redeploy rules:
 ```bash
 firebase deploy --only firestore:rules
 ```
 
-### 1.3 Test the Rules
-```bash
-# Run the security rules test script
-npm run test:security
-```
+**Option C: Cloud Functions**
 
-## Step 2: Set Up Cloud Functions
-
-### 2.1 Initialize Functions (if not already done)
-```bash
-firebase init functions
-# Select TypeScript
-# Install dependencies
-```
-
-### 2.2 Install Dependencies
-```bash
-cd functions
-npm install
-```
-
-### 2.3 Configure Paystack Secret Key
-```bash
-firebase functions:config:set paystack.secret_key="YOUR_PAYSTACK_SECRET_KEY"
-```
-
-To get your Paystack secret key:
-1. Log in to your Paystack Dashboard
-2. Go to Settings > API Keys & Webhooks
-3. Copy your Secret Key (starts with `sk_`)
-
-### 2.4 Deploy Cloud Functions
-```bash
-# From project root
-firebase deploy --only functions
-```
-
-This will deploy:
-- `paystackWebhook` - Verifies and processes payment webhooks
-- `getVideoUrl` - Generates secure video URLs with access validation
-- `grantCourseAccess` - Admin function to manually grant access
-- `revokeCourseAccess` - Admin function to revoke access
-- `logVideoAccess` - Logs video viewing for security monitoring
-
-## Step 3: Configure Paystack Webhooks
-
-### 3.1 Get Your Cloud Function URL
-After deploying, you'll see URLs like:
-```
-https://us-central1-YOUR-PROJECT.cloudfunctions.net/paystackWebhook
-```
-
-### 3.2 Add Webhook to Paystack
-1. Log in to Paystack Dashboard
-2. Go to Settings > API Keys & Webhooks
-3. Click "Add Webhook URL"
-4. Enter your Cloud Function URL
-5. Save
-
-### 3.3 Test the Webhook
-Paystack provides a webhook testing tool in the dashboard. Test with a `charge.success` event.
-
-## Step 4: Update Frontend Code
-
-### 4.1 Update Payment Success Handler
-The payment modal should wait for webhook confirmation instead of immediately granting access.
-
+Edit `functions/src/index.ts` and update the `isAdmin` function:
 ```typescript
-// In PaymentModal.tsx
-const handlePaymentSuccess = async (reference: string) => {
-  // Show loading state
-  setVerifying(true);
-  
-  // Poll for purchase record (created by webhook)
-  const maxAttempts = 30; // 30 seconds
-  for (let i = 0; i < maxAttempts; i++) {
-    const hasAccess = await checkCourseAccess(user.uid, course.id);
-    if (hasAccess) {
-      onSuccess();
-      return;
-    }
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  }
-  
-  // Timeout - show error
-  showError('Payment verification taking longer than expected. Please refresh the page.');
-};
-```
-
-### 4.2 Update Course Access Check
-Ensure the frontend respects the server-side access validation:
-
-```typescript
-// In CoursePage.tsx
-useEffect(() => {
-  const checkAccess = async () => {
-    if (!user || !course) return;
-    
-    // Check access via Firestore (respects security rules)
-    const hasAccess = await checkCourseAccess(user.uid, course.id);
-    setHasAccess(hasAccess);
-    
-    if (!hasAccess && !course.isFree && !isTrialActive(course)) {
-      setShowPaymentModal(true);
-    }
-  };
-  
-  checkAccess();
-}, [user, course]);
-```
-
-## Step 5: Secure Video Delivery (Optional but Recommended)
-
-### 5.1 Migrate Videos to Firebase Storage
-Instead of storing public video URLs, upload videos to Firebase Storage:
-
-```bash
-# Upload videos to Firebase Storage
-firebase storage:upload video.mp4 /courses/course-id/video.mp4
-```
-
-### 5.2 Update Storage Security Rules
-```
-rules_version = '2';
-service firebase.storage {
-  match /b/{bucket}/o {
-    match /courses/{courseId}/{allPaths=**} {
-      // Only allow read if user has access to the course
-      allow read: if request.auth != null && 
-                     firestore.exists(/databases/(default)/documents/courseAccess/$(request.auth.uid + '_' + courseId));
-    }
-  }
+function isAdmin(email: string | undefined): boolean {
+  if (!email) return false;
+  const adminEmails = [
+    'samuelabudu21@gmail.com',
+    'your-admin@example.com'
+  ];
+  return adminEmails.includes(email);
 }
 ```
 
-### 5.3 Generate Signed URLs
-Update the `getVideoUrl` Cloud Function to generate signed URLs:
-
-```typescript
-// In functions/src/index.ts
-const bucket = admin.storage().bucket();
-const file = bucket.file(`courses/${courseId}/video.mp4`);
-
-const [url] = await file.getSignedUrl({
-  action: 'read',
-  expires: Date.now() + 3600000, // 1 hour
-});
-
-return { videoUrl: url, expiresAt: Date.now() + 3600000 };
+Then redeploy functions:
+```bash
+cd functions
+npm run build
+firebase deploy --only functions
 ```
 
-## Step 6: Testing
+### Step 7: Test the Security System
 
-### 6.1 Test Free Course Access
-1. Create a free course
-2. Sign in as a regular user
-3. Verify you can access the video
+#### Test 1: Trial Expiration
 
-### 6.2 Test Trial Access
-1. Create a course with a 5-minute trial
-2. Sign in as a regular user
-3. Verify you can access during trial
-4. Wait 5 minutes
-5. Verify access is denied after trial expires
+1. Create a test course with 1-minute trial:
+   ```javascript
+   {
+     title: "Test Course",
+     isFree: false,
+     freeTrialMinutes: 1,
+     freeTrialStartDate: new Date(),
+     priceAfterTrial: 1000
+   }
+   ```
 
-### 6.3 Test Payment Flow
-1. Create a paid course
-2. Sign in as a regular user
-3. Attempt to access (should show payment modal)
-4. Complete payment with Paystack test card
-5. Verify webhook is received
-6. Verify access is granted
+2. Access the course (should work)
+3. Wait 1 minute
+4. Verify access is revoked
+5. Verify payment modal appears
 
-### 6.4 Test Security Bypass Attempts
-1. Try to modify localStorage to fake payment
-2. Try to modify system time to extend trial
-3. Try to access video URL directly
-4. Try to create fake purchase record in Firestore
-5. All attempts should fail
+#### Test 2: Payment Flow
 
-## Step 7: Monitoring
+1. Use Paystack test card:
+   ```
+   Card Number: 4084 0840 8408 4081
+   CVV: 408
+   Expiry: Any future date
+   PIN: 0000
+   OTP: 123456
+   ```
 
-### 7.1 Set Up Logging
+2. Complete payment
+3. Check Cloud Function logs:
+   ```bash
+   firebase functions:log --only paystackWebhook
+   ```
+
+4. Verify purchase record in Firestore:
+   - Collection: `courseAccess`
+   - Document ID: `{userId}_{courseId}`
+
+5. Verify access is granted
+6. Reload page and verify access persists
+
+#### Test 3: Security Bypass Attempts
+
+1. **LocalStorage Manipulation:**
+   - Open DevTools → Application → Local Storage
+   - Try to modify trial dates
+   - Verify access is still blocked
+
+2. **React State Manipulation:**
+   - Open DevTools → Components
+   - Try to set `hasAccess = true`
+   - Verify video still doesn't load
+
+3. **Direct Firestore Access:**
+   - Try to read course data without access
+   - Verify Firestore rules block access
+
+### Step 8: Monitor Security
+
+#### Set Up Logging
+
 Monitor Cloud Function logs:
 ```bash
+# View all logs
 firebase functions:log
+
+# View specific function logs
+firebase functions:log --only paystackWebhook
+
+# Stream logs in real-time
+firebase functions:log --follow
 ```
 
-### 7.2 Create Alerts
-Set up Firebase Alerts for:
-- Failed payment verifications
-- Unusual access patterns
-- Multiple failed access attempts
+#### Monitor Firestore
 
-### 7.3 Review Access Logs
-Regularly review the `videoAccessLogs` collection for suspicious activity.
+1. Go to Firebase Console → Firestore
+2. Check `courseAccess` collection for purchases
+3. Check `videoAccessLogs` collection for access attempts
+4. Check `accessRevocations` collection for revoked access
 
-## Step 8: Production Checklist
+#### Set Up Alerts (Optional)
 
-Before going live, ensure:
+Configure Firebase Alerts:
+1. Go to Firebase Console → Alerts
+2. Set up alerts for:
+   - Function errors
+   - High function execution time
+   - Unusual access patterns
 
-- [ ] Firestore Security Rules deployed
+## 🔧 Troubleshooting
+
+### Issue: Webhook Not Receiving Payments
+
+**Symptoms:**
+- Payment completes but access not granted
+- No logs in Cloud Functions
+
+**Solutions:**
+1. Verify webhook URL in Paystack dashboard
+2. Check Cloud Function is deployed:
+   ```bash
+   firebase functions:list
+   ```
+3. Test webhook manually in Paystack dashboard
+4. Check Cloud Function logs for errors:
+   ```bash
+   firebase functions:log --only paystackWebhook
+   ```
+
+### Issue: Trial Not Expiring
+
+**Symptoms:**
+- Trial should expire but user still has access
+
+**Solutions:**
+1. Verify `freeTrialStartDate` is set in course document
+2. Check trial duration values are correct
+3. Verify Firestore rules are deployed:
+   ```bash
+   firebase deploy --only firestore:rules
+   ```
+4. Check client-side trial calculation in browser console
+
+### Issue: Access Denied After Payment
+
+**Symptoms:**
+- Payment successful but user can't access course
+
+**Solutions:**
+1. Check `courseAccess` collection for purchase record
+2. Verify document ID format: `{userId}_{courseId}`
+3. Check Firestore rules allow read access
+4. Verify user is signed in with correct account
+5. Check Cloud Function logs for webhook processing errors
+
+### Issue: Admin Functions Not Working
+
+**Symptoms:**
+- Can't grant/revoke access as admin
+
+**Solutions:**
+1. Verify your email is in admin list
+2. Check you're signed in with admin account
+3. Verify Cloud Functions are deployed
+4. Check Cloud Function logs for permission errors
+
+## 📊 Security Checklist
+
+Before going live, verify:
+
+- [ ] Paystack secret key configured
+- [ ] Firestore rules deployed
 - [ ] Cloud Functions deployed
-- [ ] Paystack webhook configured and tested
-- [ ] Payment flow tested end-to-end
+- [ ] Webhook URL configured in Paystack
+- [ ] Admin emails configured
 - [ ] Trial expiration tested
-- [ ] Security bypass attempts tested and blocked
-- [ ] Error handling implemented
-- [ ] Monitoring and alerts configured
-- [ ] Backup and recovery plan in place
-- [ ] Documentation updated
+- [ ] Payment flow tested
+- [ ] Security bypass attempts tested
+- [ ] Monitoring set up
+- [ ] Backup plan in place
 
-## Troubleshooting
+## 🎯 Production Deployment
 
-### Webhook Not Receiving Events
-- Check Paystack webhook URL is correct
-- Verify Cloud Function is deployed
-- Check Cloud Function logs for errors
-- Test webhook from Paystack dashboard
+### Pre-Launch Checklist
 
-### Trial Not Expiring
-- Verify `freeTrialStartDate` is set in Firestore
-- Check server time vs. client time
-- Review Firestore Security Rules logs
+1. **Switch to Live Keys:**
+   ```bash
+   # Update to live Paystack key
+   firebase functions:config:set paystack.secret_key="sk_live_..."
+   
+   # Redeploy functions
+   cd functions
+   firebase deploy --only functions
+   ```
 
-### Payment Verified But No Access
-- Check `courseAccess` collection for purchase record
-- Verify document ID format: `userId_courseId`
-- Check Cloud Function logs for errors
-- Verify Firestore Security Rules allow read access
+2. **Update Webhook URL:**
+   - Use live webhook URL in Paystack dashboard
+   - Test with small real payment
 
-### Videos Not Loading
-- Check video URL is valid
-- Verify user has access (check `courseAccess`)
-- Review browser console for errors
-- Check Firebase Storage rules if using Storage
+3. **Enable Production Monitoring:**
+   - Set up Firebase Alerts
+   - Configure error notifications
+   - Set up uptime monitoring
 
-## Security Best Practices
+4. **Security Audit:**
+   - Review all Firestore rules
+   - Test all security measures
+   - Verify admin access controls
 
-1. **Never trust client-side validation** - Always validate on server
-2. **Use webhooks for payment verification** - Don't trust client payment status
-3. **Implement rate limiting** - Prevent brute force attempts
-4. **Log all access attempts** - Monitor for suspicious activity
-5. **Use signed URLs for videos** - Prevent URL sharing
-6. **Regular security audits** - Review logs and test security
-7. **Keep dependencies updated** - Patch security vulnerabilities
-8. **Implement HTTPS only** - Never use HTTP for sensitive data
+### Post-Launch Monitoring
 
-## Support
+Monitor these metrics daily:
+- Payment success rate
+- Trial conversion rate
+- Failed access attempts
+- Cloud Function errors
+- Unusual access patterns
 
-For issues or questions:
-1. Check Firebase Console logs
-2. Review Paystack webhook logs
-3. Check browser console for errors
-4. Review this documentation
-5. Contact support if needed
+## 📚 Additional Resources
 
-## Next Steps
+- **Detailed Security Analysis:** `COURSE_SECURITY_IMPLEMENTATION.md`
+- **Implementation Status:** `SECURITY_IMPLEMENTATION_SUMMARY.md`
+- **Quick Reference:** `SECURITY_QUICK_REFERENCE.md`
+- **Firestore Rules:** `firestore.rules`
+- **Cloud Functions:** `functions/src/index.ts`
 
-After completing this setup:
-1. Test thoroughly in development
-2. Deploy to staging environment
-3. Conduct security audit
-4. Deploy to production
-5. Monitor for first 48 hours
-6. Gather user feedback
-7. Iterate and improve
+## 🆘 Getting Help
 
-## Additional Resources
+If you encounter issues:
 
-- [Firebase Security Rules Documentation](https://firebase.google.com/docs/rules)
-- [Paystack Webhook Documentation](https://paystack.com/docs/payments/webhooks)
-- [Firebase Cloud Functions](https://firebase.google.com/docs/functions)
-- [Firebase Storage Security](https://firebase.google.com/docs/storage/security)
-- [OWASP Security Guidelines](https://owasp.org/)
+1. Check Cloud Function logs: `firebase functions:log`
+2. Review Firestore rules in Firebase Console
+3. Test rules using Firestore Rules Simulator
+4. Check Paystack webhook logs
+5. Review video access logs in Firestore
+
+## ✨ You're Done!
+
+Your course payment security system is now fully configured and ready for production. The system provides enterprise-grade security with multiple layers of protection against unauthorized access.
+
+**Key Security Features:**
+- ✅ Server-side trial expiration (cannot be bypassed)
+- ✅ Payment verification with webhook signatures
+- ✅ Protected purchase records (admin-only write)
+- ✅ Real-time access monitoring
+- ✅ Comprehensive audit trail
+- ✅ Admin access controls
+
+Your paid courses are now secure! 🎉
