@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import RobotMascot from './RobotMascot';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navigation() {
   const { user, isAdmin, signOut, signInWithGoogle } = useAuth();
@@ -41,7 +42,7 @@ export default function Navigation() {
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       className="fixed top-3 sm:top-6 left-1/2 -translate-x-1/2 z-50 glass-panel rounded-full px-3 sm:px-6 py-2 sm:py-3 flex items-center gap-3 sm:gap-8 max-w-[95vw] overflow-x-auto"
     >
-      <div className="font-sans font-bold text-xs sm:text-sm tracking-[2px] sm:tracking-[3px] uppercase flex items-center pr-3 sm:pr-4 border-r border-white/10 whitespace-nowrap">
+      <div className="font-sans font-bold text-xs sm:text-sm tracking-[2px] sm:tracking-[3px] uppercase flex items-center pr-3 sm:pr-4 border-r border-theme whitespace-nowrap">
         <RobotMascot className="w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3" />
         AI dome
       </div>
@@ -53,7 +54,7 @@ export default function Navigation() {
             to="/"
             className={({ isActive }) => 
               `relative font-sans font-semibold text-[9px] sm:text-[10px] tracking-[2px] sm:tracking-[3px] uppercase transition-colors duration-300 whitespace-nowrap ${
-                isActive ? 'text-white' : 'text-white/60 hover:text-white/80'
+                isActive ? 'text-theme-primary' : 'text-theme-secondary hover-theme-primary'
               }`
             }
           >
@@ -63,7 +64,7 @@ export default function Navigation() {
                 {isActive && (
                   <motion.div
                     layoutId="nav-indicator"
-                    className="absolute -bottom-2 left-0 right-0 h-[1px] bg-white"
+                    className="absolute -bottom-2 left-0 right-0 h-[1px] bg-theme-primary"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
@@ -80,7 +81,7 @@ export default function Navigation() {
                 to="/gallery"
                 className={({ isActive }) => 
                   `relative font-sans font-semibold text-[9px] sm:text-[10px] tracking-[2px] sm:tracking-[3px] uppercase transition-colors duration-300 whitespace-nowrap ${
-                    isActive ? 'text-white' : 'text-white/60 hover:text-white/80'
+                    isActive ? 'text-theme-primary' : 'text-theme-secondary hover-theme-primary'
                   }`
                 }
               >
@@ -90,7 +91,7 @@ export default function Navigation() {
                     {isActive && (
                       <motion.div
                         layoutId="nav-indicator"
-                        className="absolute -bottom-2 left-0 right-0 h-[1px] bg-white"
+                        className="absolute -bottom-2 left-0 right-0 h-[1px] bg-theme-primary"
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
@@ -103,7 +104,7 @@ export default function Navigation() {
                 to="/cinematic"
                 className={({ isActive }) => 
                   `relative font-sans font-semibold text-[9px] sm:text-[10px] tracking-[2px] sm:tracking-[3px] uppercase transition-colors duration-300 whitespace-nowrap ${
-                    isActive ? 'text-white' : 'text-white/60 hover:text-white/80'
+                    isActive ? 'text-theme-primary' : 'text-theme-secondary hover-theme-primary'
                   }`
                 }
               >
@@ -113,7 +114,7 @@ export default function Navigation() {
                     {isActive && (
                       <motion.div
                         layoutId="nav-indicator"
-                        className="absolute -bottom-2 left-0 right-0 h-[1px] bg-white"
+                        className="absolute -bottom-2 left-0 right-0 h-[1px] bg-theme-primary"
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
@@ -126,7 +127,7 @@ export default function Navigation() {
                 to="/learn"
                 className={({ isActive }) => 
                   `relative font-sans font-semibold text-[9px] sm:text-[10px] tracking-[2px] sm:tracking-[3px] uppercase transition-colors duration-300 whitespace-nowrap ${
-                    isActive ? 'text-white' : 'text-white/60 hover:text-white/80'
+                    isActive ? 'text-theme-primary' : 'text-theme-secondary hover-theme-primary'
                   }`
                 }
               >
@@ -136,7 +137,7 @@ export default function Navigation() {
                     {isActive && (
                       <motion.div
                         layoutId="nav-indicator"
-                        className="absolute -bottom-2 left-0 right-0 h-[1px] bg-white"
+                        className="absolute -bottom-2 left-0 right-0 h-[1px] bg-theme-primary"
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
                       />
                     )}
@@ -154,7 +155,7 @@ export default function Navigation() {
               to="/admin"
               className={({ isActive }) => 
                 `relative font-sans font-semibold text-[9px] sm:text-[10px] tracking-[2px] sm:tracking-[3px] uppercase transition-colors duration-300 whitespace-nowrap ${
-                  isActive ? 'text-white' : 'text-white/60 hover:text-white/80'
+                  isActive ? 'text-theme-primary' : 'text-theme-secondary hover-theme-primary'
                 }`
               }
               >
@@ -164,7 +165,7 @@ export default function Navigation() {
                   {isActive && (
                     <motion.div
                       layoutId="nav-indicator"
-                      className="absolute -bottom-2 left-0 right-0 h-[1px] bg-white"
+                      className="absolute -bottom-2 left-0 right-0 h-[1px] bg-theme-primary"
                       transition={{ type: "spring", stiffness: 300, damping: 30 }}
                     />
                   )}
@@ -175,10 +176,11 @@ export default function Navigation() {
         )}
 
         {/* Auth buttons */}
-        <li className="pl-3 sm:pl-4 border-l border-white/10">
+        <li className="pl-3 sm:pl-4 border-l border-theme flex items-center gap-3">
+          <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-2">
-              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-white/20 overflow-hidden shadow-sm">
+              <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-theme overflow-hidden shadow-sm">
                 <img 
                   src={user.photoURL || 'https://via.placeholder.com/24'} 
                   alt={user.displayName || 'User'} 
@@ -188,7 +190,7 @@ export default function Navigation() {
               <button
                 onClick={handleSignOut}
                 aria-label="Sign out of your account"
-                className="font-sans font-semibold text-[9px] sm:text-[10px] tracking-[2px] sm:tracking-[3px] uppercase text-white/60 hover:text-white/80 transition-colors duration-300 whitespace-nowrap"
+                className="font-sans font-semibold text-[9px] sm:text-[10px] tracking-[2px] sm:tracking-[3px] uppercase text-theme-secondary hover:text-theme-primary transition-colors duration-300 whitespace-nowrap"
               >
                 Sign Out
               </button>
@@ -197,7 +199,7 @@ export default function Navigation() {
             <button
               onClick={handleSignIn}
               aria-label="Sign in with Google"
-              className="font-sans font-semibold text-[9px] sm:text-[10px] tracking-[2px] sm:tracking-[3px] uppercase text-white/60 hover:text-white/80 transition-colors duration-300 whitespace-nowrap"
+              className="font-sans font-semibold text-[9px] sm:text-[10px] tracking-[2px] sm:tracking-[3px] uppercase text-theme-secondary hover:text-theme-primary transition-colors duration-300 whitespace-nowrap"
             >
               Sign In
             </button>

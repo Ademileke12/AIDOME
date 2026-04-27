@@ -59,8 +59,8 @@ export default function DesignDetail() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-          <p className="text-white/60">Loading design...</p>
+          <div className="w-12 h-12 border-2 border-theme border-t-theme-primary rounded-full animate-spin" />
+          <p className="text-theme-secondary">Loading design...</p>
         </div>
       </div>
     );
@@ -70,15 +70,15 @@ export default function DesignDetail() {
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
         <div className="text-center max-w-md">
-          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-white/5 flex items-center justify-center">
-            <svg className="w-8 h-8 text-white/40" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-theme-elevated flex items-center justify-center">
+            <svg className="w-8 h-8 text-theme-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h1 className="text-xl font-sans text-white/60 mb-6">{error || 'Design not found'}</h1>
+          <h1 className="text-xl font-sans text-theme-secondary mb-6">{error || 'Design not found'}</h1>
           <Link 
             to="/gallery" 
-            className="inline-flex items-center px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors editable-label"
+            className="inline-flex items-center px-6 py-3 bg-theme-elevated hover:bg-theme-elevated border border-theme rounded-lg transition-colors editable-label"
           >
             ← Back to Gallery
           </Link>
@@ -90,7 +90,7 @@ export default function DesignDetail() {
   return (
     <>
       <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 max-w-[1600px] mx-auto">
-        <Link to="/gallery" className="inline-flex items-center editable-label hover:text-white transition-colors mb-12">
+        <Link to="/gallery" className="inline-flex items-center editable-label hover-theme-primary transition-colors mb-12">
           ← Back to Gallery
         </Link>
 
@@ -116,16 +116,16 @@ export default function DesignDetail() {
                   {design.category}
                 </span>
                 {design.isPremium ? (
-                  <span className="bg-white text-black px-2 py-0.5 rounded editable-label !text-black flex items-center justify-center">
+                  <span className="bg-theme-primary text-theme-surface px-2 py-0.5 rounded editable-label !text-theme-surface flex items-center justify-center">
                     Premium
                   </span>
                 ) : (
-                  <span className="bg-white/5 border border-white/10 text-white/80 px-2 py-0.5 rounded editable-label flex items-center justify-center">
+                  <span className="bg-theme-elevated border border-theme text-theme-primary px-2 py-0.5 rounded editable-label flex items-center justify-center">
                     Free
                   </span>
                 )}
                 
-                <div className="flex items-center gap-1.5 editable-label text-white/60 pl-2 border-l border-white/10">
+                <div className="flex items-center gap-1.5 editable-label text-theme-secondary pl-2 border-l border-theme">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                   <span>{(parseInt(design.id.replace(/\D/g, '')) * 142 + 87).toLocaleString()} downloads</span>
                 </div>
@@ -139,7 +139,7 @@ export default function DesignDetail() {
               className="p-6 editorial-card rounded-xl"
             >
               <h3 className="editable-label mb-4">Prompt Generation</h3>
-              <p className="text-sm text-balance text-white/70 leading-relaxed font-sans">
+              <p className="text-sm text-balance text-theme-secondary leading-relaxed font-sans">
                 "{design.prompt}"
               </p>
             </motion.div>
@@ -154,17 +154,17 @@ export default function DesignDetail() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setShowPayment(true)}
-                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full editable-label tracking-wide transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-theme-surface rounded-full editable-label tracking-wide transition-colors flex items-center justify-center gap-2"
                   type="button"
                 >
                   <span className="font-sans font-bold">Unlock Asset — ₦12,500</span>
                 </motion.button>
               ) : (
                 <motion.button 
-                  whileHover={{ scale: 1.02, backgroundColor: '#e5e5e5' }}
+                  whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => setShowConfirm(true)}
-                  className="w-full py-4 bg-white text-black rounded-full editable-label !text-black transition-colors"
+                  className="w-full py-4 bg-theme-primary text-theme-surface rounded-full editable-label !text-theme-surface transition-colors"
                   type="button"
                 >
                   Download Asset
@@ -211,16 +211,16 @@ export default function DesignDetail() {
               className="bg-[#0a0a0a] border border-white/[0.05] p-8 md:p-12 max-w-lg w-full shadow-2xl relative"
             >
               <h2 className="text-3xl font-light tracking-tight mb-4">
-                Confirm <span className="font-serif italic text-white/40">Download</span>
+                Confirm <span className="font-serif italic text-theme-tertiary">Download</span>
               </h2>
-              <p className="font-sans text-sm text-white/60 leading-relaxed mb-10">
-                You are about to download the high-fidelity UI assets and prompt blueprints for <strong className="text-white font-medium">{design.title}</strong>. Are you sure you want to proceed?
+              <p className="font-sans text-sm text-theme-secondary leading-relaxed mb-10">
+                You are about to download the high-fidelity UI assets and prompt blueprints for <strong className="text-theme-primary font-medium">{design.title}</strong>. Are you sure you want to proceed?
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-end">
                 <button 
                   onClick={() => setShowConfirm(false)}
-                  className="px-6 py-3 editable-label hover:text-white transition-colors text-center"
+                  className="px-6 py-3 editable-label hover-theme-primary transition-colors text-center"
                 >
                   Cancel
                 </button>
@@ -229,7 +229,7 @@ export default function DesignDetail() {
                     setShowConfirm(false);
                     // Add actual download logic here if needed
                   }}
-                  className="px-8 py-3 bg-white text-black rounded-full editable-label !text-black hover:bg-white/80 transition-colors text-center"
+                  className="px-8 py-3 bg-theme-primary text-theme-surface rounded-full editable-label !text-theme-surface hover:opacity-80 transition-opacity text-center"
                 >
                   Proceed
                 </button>

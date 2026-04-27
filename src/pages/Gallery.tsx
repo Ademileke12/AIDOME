@@ -63,7 +63,7 @@ export default function Gallery() {
       >
         <div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-tight leading-[1.1]">
-            The <span className="font-serif italic font-light text-white/40">Archive</span>
+            The <span className="font-serif italic font-light text-theme-tertiary">Archive</span>
           </h1>
           <p className="editable-label mt-4 sm:mt-6 max-w-md text-sm sm:text-base">
             A definitive collection of design patterns, interfaces, and visual systems.
@@ -76,7 +76,7 @@ export default function Gallery() {
             <button
               key={f}
               onClick={() => setFilter(f as FilterType)}
-              className={`editable-label transition-colors duration-300 relative text-sm sm:text-base ${filter === f ? '!text-white' : 'hover:text-white/80'}`}
+              className={`editable-label transition-colors duration-300 relative text-sm sm:text-base ${filter === f ? '!text-theme-primary' : 'hover-theme-secondary'}`}
             >
               {f}
               {filter === f && (
@@ -96,7 +96,7 @@ export default function Gallery() {
         <div className="flex items-center justify-center py-24">
           <div className="editorial-card px-8 py-6 rounded-lg">
             <div className="flex items-center gap-4">
-              <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-theme border-t-theme-primary rounded-full animate-spin" />
               <p className="editable-label">Loading designs...</p>
             </div>
           </div>
@@ -114,7 +114,7 @@ export default function Gallery() {
                 </svg>
               </div>
               <div>
-                <p className="text-lg font-medium text-white mb-2">Failed to load designs</p>
+                <p className="text-lg font-medium text-theme-primary mb-2">Failed to load designs</p>
                 <p className="editable-label">{error}</p>
               </div>
               <button
@@ -154,11 +154,11 @@ export default function Gallery() {
                 
                 {design.isPremium ? (
                   <div className="absolute top-3 right-3 sm:top-4 sm:right-4 editorial-card px-2 sm:px-3 py-1 sm:py-1.5 rounded-full z-10 transition-transform group-hover:scale-105">
-                    <span className="editable-label !text-white text-xs">Premium</span>
+                    <span className="editable-label !text-theme-primary text-xs">Premium</span>
                   </div>
                 ) : (
-                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white/5 border border-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full z-10 transition-transform group-hover:scale-105">
-                    <span className="editable-label !text-white/60 text-xs">Free</span>
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-theme-elevated border border-theme backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full z-10 transition-transform group-hover:scale-105">
+                    <span className="editable-label !text-theme-secondary text-xs">Free</span>
                   </div>
                 )}
               </Link>
@@ -166,7 +166,7 @@ export default function Gallery() {
                 <div>
                   <motion.h3 
                     layout="position"
-                    className="text-base sm:text-lg font-medium tracking-tight group-hover:text-white/80 transition-colors"
+                    className="text-base sm:text-lg font-medium tracking-tight group-hover-theme-secondary transition-colors"
                   >
                     {design.title}
                   </motion.h3>

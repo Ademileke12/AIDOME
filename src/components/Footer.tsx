@@ -5,14 +5,14 @@ export default function Footer() {
   const creatorImage = 'https://i.ibb.co/Y4Hght08/pfp.png';
   
   return (
-    <footer className="pt-24 pb-12 border-t border-white/[0.05] mt-24 px-6 md:px-12 max-w-[1600px] mx-auto w-full">
+    <footer className="pt-24 pb-12 border-t border-theme mt-24 px-6 md:px-12 max-w-[1600px] mx-auto w-full">
       {/* Contact Me Section */}
       <div className="mb-16">
-        <div className="glass-panel rounded-xl sm:rounded-2xl p-6 sm:p-8 md:p-12 text-center max-w-3xl mx-auto border border-white/10 hover:border-white/20 transition-all duration-500 group">
+        <div className="glass-panel rounded-xl sm:rounded-2xl p-6 sm:p-8 md:p-12 text-center max-w-3xl mx-auto border border-theme hover:border-theme-strong transition-all duration-500 group">
           <h3 className="text-2xl sm:text-3xl md:text-4xl font-light tracking-tight mb-3 sm:mb-4 leading-tight">
-            One-on-One <span className="font-serif italic text-white/60">Learning</span>
+            One-on-One <span className="font-serif italic text-theme-secondary">Learning</span>
           </h3>
-          <p className="text-white/60 text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
+          <p className="text-theme-secondary text-sm sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
             Want to dive deep into a specialized aspect of AI? Book a personalized learning session with me. 
             Tailored guidance, hands-on practice, and expert insights.
           </p>
@@ -20,7 +20,7 @@ export default function Footer() {
             href="https://wa.me/2349018873250"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/30 rounded-full transition-all duration-300 group-hover:scale-105 text-sm sm:text-base"
+            className="inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-theme-elevated hover:bg-theme-elevated border border-theme-strong hover:border-theme-strong rounded-full transition-all duration-300 group-hover:scale-105 text-sm sm:text-base"
           >
             <svg 
               className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" 
@@ -31,7 +31,7 @@ export default function Footer() {
             </svg>
             <span className="font-medium whitespace-nowrap">Contact me on WhatsApp</span>
           </a>
-          <p className="mt-3 sm:mt-4 text-[10px] sm:text-xs text-white/40">
+          <p className="mt-3 sm:mt-4 text-[10px] sm:text-xs text-theme-tertiary">
             Paid sessions • Flexible scheduling • Expert guidance
           </p>
         </div>
@@ -44,7 +44,7 @@ export default function Footer() {
         
         {/* Left: Bio info */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-8 z-10 max-w-2xl text-center sm:text-left">
-          <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-full border border-white/20 overflow-hidden shadow-2xl relative">
+          <div className="w-24 h-24 sm:w-32 sm:h-32 shrink-0 rounded-full border border-theme overflow-hidden shadow-2xl relative">
             <img 
               src={creatorImage} 
               alt="Creator Avatar" 
@@ -52,13 +52,13 @@ export default function Footer() {
             />
           </div>
           <div className="flex flex-col justify-center">
-            <h3 className="text-2xl sm:text-3xl font-light tracking-tight mb-4 text-white">
-              <span className="font-serif italic text-white/50 block mb-1 tracking-normal">Built by</span>
+            <h3 className="text-2xl sm:text-3xl font-light tracking-tight mb-4 text-theme-primary">
+              <span className="font-serif italic text-theme-secondary block mb-1 tracking-normal">Built by</span>
               anakincoco
             </h3>
-            <p className="text-sm font-sans text-white/60 leading-relaxed text-balance">
+            <p className="text-sm font-sans text-theme-secondary leading-relaxed text-balance">
               Frontend Dev and game developer. vibe coder. Educating through Writing. AI/ Digital Token User. Anime lover. Building 
-              <a href="https://twitter.com/examfever_" target="_blank" rel="noreferrer" className="mx-1 text-white hover:text-white/70 transition-colors border-b border-white/30">
+              <a href="https://twitter.com/examfever_" target="_blank" rel="noreferrer" className="mx-1 text-theme-primary hover-theme-secondary transition-colors border-b border-theme">
                 @examfever_
               </a> 
               nd CADI.
@@ -67,8 +67,8 @@ export default function Footer() {
         </div>
 
         {/* Right: Interactive Mascot */}
-        <div className="z-10 bg-white/[0.02] border border-white/5 p-8 rounded-2xl shrink-0 hidden md:flex items-center justify-center">
-          <InteractiveMascot className="w-32 h-32 text-white" />
+        <div className="z-10 bg-theme-elevated border border-theme p-8 rounded-2xl shrink-0 hidden md:flex items-center justify-center">
+          <InteractiveMascot className="w-32 h-32 text-theme-primary" />
         </div>
       </div>
 
@@ -76,7 +76,7 @@ export default function Footer() {
       <div className="flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 editable-label">
           <span>© 2026 AI dome Gallery</span>
-          <span className="hidden md:inline text-white/20">|</span>
+          <span className="hidden md:inline text-theme-tertiary">|</span>
           <span>By anakincoco</span>
         </div>
         <div className="flex gap-6">
@@ -84,19 +84,19 @@ export default function Footer() {
             href="https://x.com/anakincoco" 
             target="_blank"
             rel="noopener noreferrer"
-            className="editable-label hover:text-white transition-colors"
+            className="editable-label hover-theme-primary transition-colors"
           >
             Twitter
           </a>
           <a 
             href="#" 
-            className="editable-label hover:text-white transition-colors"
+            className="editable-label hover-theme-primary transition-colors"
           >
             Dribbble
           </a>
           <a 
             href="#" 
-            className="editable-label hover:text-white transition-colors"
+            className="editable-label hover-theme-primary transition-colors"
           >
             Instagram
           </a>

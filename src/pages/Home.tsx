@@ -128,7 +128,7 @@ export default function Home() {
             className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-light tracking-tight leading-[1.1] text-balance"
           >
             Design <br />
-            <span className="font-serif italic font-light text-white/40">Without</span> <br />
+            <span className="font-serif italic font-light text-theme-tertiary">Without</span> <br />
             Compromise
           </motion.h1>
           
@@ -149,7 +149,7 @@ export default function Home() {
           >
             <Link 
               to="/gallery" 
-              className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 glass-panel rounded-full text-xs font-medium tracking-widest uppercase hover:bg-white hover:text-black transition-all duration-500"
+              className="inline-flex items-center justify-center px-6 sm:px-8 py-3 sm:py-4 glass-panel rounded-full text-xs font-medium tracking-widest uppercase hover:bg-theme-primary hover:text-theme-surface transition-all duration-500"
             >
               Explore Gallery
             </Link>
@@ -163,18 +163,18 @@ export default function Home() {
           transition={{ delay: 1.2, duration: 1 }}
           className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
         >
-          <span className="editable-label !text-[9px] !text-white/30">Scroll</span>
-          <div className="w-[1px] h-12 bg-gradient-to-b from-white/30 to-transparent" />
+          <span className="editable-label !text-[9px] !text-theme-tertiary">Scroll</span>
+          <div className="w-[1px] h-12 bg-gradient-to-b from-theme-tertiary to-transparent" />
         </motion.div>
       </section>
 
       {/* Featured Gallery */}
       <section className="py-12 sm:py-24 px-4 sm:px-6 md:px-12 max-w-[1600px] mx-auto">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-16 border-b border-white/[0.05] pb-6 sm:pb-8 gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-16 border-b border-theme pb-6 sm:pb-8 gap-4">
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-light tracking-tight">
-            Featured <span className="font-serif italic text-white/40">Works</span>
+            Featured <span className="font-serif italic text-theme-tertiary">Works</span>
           </h2>
-          <Link to="/gallery" className="editable-label !text-xs hover:text-white transition-colors">
+          <Link to="/gallery" className="editable-label !text-xs hover-theme-primary transition-colors">
             View All +
           </Link>
         </div>
@@ -182,13 +182,13 @@ export default function Home() {
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <p className="text-white/40 text-sm">Loading designs...</p>
+              <div className="w-12 h-12 border-2 border-theme border-t-theme-primary rounded-full animate-spin" />
+              <p className="text-theme-tertiary text-sm">Loading designs...</p>
             </div>
           </div>
         ) : designs.length === 0 ? (
           <div className="text-center py-24">
-            <p className="text-white/40">No designs available yet</p>
+            <p className="text-theme-tertiary">No designs available yet</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12">
@@ -212,11 +212,11 @@ export default function Home() {
                 
                 {design.isPremium ? (
                   <div className="absolute top-3 right-3 sm:top-4 sm:right-4 editorial-card px-2 sm:px-3 py-1 sm:py-1.5 rounded-full z-10">
-                    <span className="editable-label !text-white text-xs">Premium</span>
+                    <span className="editable-label !text-theme-primary text-xs">Premium</span>
                   </div>
                 ) : (
-                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-white/5 border border-white/10 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full z-10">
-                    <span className="editable-label !text-white/60 text-xs">Free</span>
+                  <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-theme-elevated border border-theme backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full z-10">
+                    <span className="editable-label !text-theme-secondary text-xs">Free</span>
                   </div>
                 )}
               </Link>
@@ -227,7 +227,7 @@ export default function Home() {
                     whileInView={{ y: 0, opacity: 1 }}
                     transition={{ duration: 0.8, delay: i * 0.1 + 0.2, ease: [0.16, 1, 0.3, 1] }}
                     viewport={{ once: true }}
-                    className="text-lg sm:text-xl md:text-2xl font-medium tracking-tight group-hover:text-white/80 transition-colors"
+                    className="text-lg sm:text-xl md:text-2xl font-medium tracking-tight group-hover-theme-secondary transition-colors"
                   >
                     {design.title}
                   </motion.h3>
@@ -241,12 +241,12 @@ export default function Home() {
       </section>
 
       {/* Featured Courses */}
-      <section className="py-12 sm:py-24 px-4 sm:px-6 md:px-12 max-w-[1600px] mx-auto border-t border-white/[0.05]">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-16 border-b border-white/[0.05] pb-6 sm:pb-8 gap-4">
+      <section className="py-12 sm:py-24 px-4 sm:px-6 md:px-12 max-w-[1600px] mx-auto border-t border-theme">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-16 border-b border-theme pb-6 sm:pb-8 gap-4">
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-light tracking-tight">
-            Featured <span className="font-serif italic text-white/40">Courses</span>
+            Featured <span className="font-serif italic text-theme-tertiary">Courses</span>
           </h2>
-          <Link to="/learn" className="editable-label !text-xs hover:text-white transition-colors">
+          <Link to="/learn" className="editable-label !text-xs hover-theme-primary transition-colors">
             View Syllabus +
           </Link>
         </div>
@@ -254,13 +254,13 @@ export default function Home() {
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <p className="text-white/40 text-sm">Loading courses...</p>
+              <div className="w-12 h-12 border-2 border-theme border-t-theme-primary rounded-full animate-spin" />
+              <p className="text-theme-tertiary text-sm">Loading courses...</p>
             </div>
           </div>
         ) : courses.length === 0 ? (
           <div className="text-center py-24">
-            <p className="text-white/40">No courses available yet</p>
+            <p className="text-theme-tertiary">No courses available yet</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -300,19 +300,19 @@ export default function Home() {
               {/* Content */}
               <div className="p-4 sm:p-6 flex flex-col flex-grow">
                 <div className="flex justify-between items-start mb-3">
-                  <div className="editable-label !text-white/40 text-xs sm:text-sm">
+                  <div className="editable-label !text-theme-tertiary text-xs sm:text-sm">
                     {String(course.modules).padStart(2, '0')} Modules
                   </div>
                 </div>
-                <h3 className="text-lg sm:text-xl font-medium tracking-tight mb-2 sm:mb-3 group-hover:text-white/80 transition-colors">
+                <h3 className="text-lg sm:text-xl font-medium tracking-tight mb-2 sm:mb-3 group-hover-theme-secondary transition-colors">
                   {course.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-white/50 leading-relaxed font-sans mb-6 sm:mb-8 flex-grow line-clamp-3">
+                <p className="text-xs sm:text-sm text-theme-secondary leading-relaxed font-sans mb-6 sm:mb-8 flex-grow line-clamp-3">
                   {course.description}
                 </p>
                 <Link 
                   to="/learn" 
-                  className="mt-auto inline-flex items-center text-xs font-medium tracking-widest uppercase text-white/40 group-hover:text-white transition-colors"
+                  className="mt-auto inline-flex items-center text-xs font-medium tracking-widest uppercase text-theme-tertiary group-hover-theme-primary transition-colors"
                 >
                   Enroll Now <span className="ml-2">→</span>
                 </Link>
@@ -324,12 +324,12 @@ export default function Home() {
       </section>
 
       {/* Cinematic Preview */}
-      <section className="py-12 sm:py-24 px-4 sm:px-6 md:px-12 max-w-[1600px] mx-auto border-t border-white/[0.05]">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-16 border-b border-white/[0.05] pb-6 sm:pb-8 gap-4">
+      <section className="py-12 sm:py-24 px-4 sm:px-6 md:px-12 max-w-[1600px] mx-auto border-t border-theme">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 sm:mb-16 border-b border-theme pb-6 sm:pb-8 gap-4">
           <h2 className="text-2xl sm:text-3xl md:text-5xl font-light tracking-tight">
-            Cinematic <span className="font-serif italic text-white/40">Environments</span>
+            Cinematic <span className="font-serif italic text-theme-tertiary">Environments</span>
           </h2>
-          <Link to="/cinematic" className="editable-label !text-xs hover:text-white transition-colors">
+          <Link to="/cinematic" className="editable-label !text-xs hover-theme-primary transition-colors">
             Explore Archive +
           </Link>
         </div>
@@ -337,13 +337,13 @@ export default function Home() {
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="flex flex-col items-center gap-4">
-              <div className="w-12 h-12 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-              <p className="text-white/40 text-sm">Loading cinematics...</p>
+              <div className="w-12 h-12 border-2 border-theme border-t-theme-primary rounded-full animate-spin" />
+              <p className="text-theme-tertiary text-sm">Loading cinematics...</p>
             </div>
           </div>
         ) : cinematicImages.length === 0 ? (
           <div className="text-center py-24">
-            <p className="text-white/40">No cinematics available yet</p>
+            <p className="text-theme-tertiary">No cinematics available yet</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
@@ -365,10 +365,10 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 </div>
                 <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row justify-between items-start sm:items-center px-1 gap-2">
-                  <h3 className="text-lg sm:text-xl font-medium tracking-tight group-hover:text-white/80 transition-colors">
+                  <h3 className="text-lg sm:text-xl font-medium tracking-tight group-hover-theme-secondary transition-colors">
                     {item.title}
                   </h3>
-                  <span className="editable-label !text-xs !text-white/40 group-hover:!text-white transition-colors whitespace-nowrap">
+                  <span className="editable-label !text-xs !text-theme-tertiary group-hover:!text-theme-primary transition-colors whitespace-nowrap">
                     View Data Blueprint →
                   </span>
                 </div>

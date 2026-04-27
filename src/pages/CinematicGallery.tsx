@@ -33,11 +33,11 @@ export default function CinematicGallery() {
         initial={{ y: 20, opacity: 0 }} 
         animate={{ y: 0, opacity: 1 }} 
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }} 
-        className="mb-8 sm:mb-12 border-b border-white/[0.05] pb-6 sm:pb-8 flex justify-between items-end"
+        className="mb-8 sm:mb-12 border-b border-theme pb-6 sm:pb-8 flex justify-between items-end"
       >
         <div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-tight leading-[1.1]">
-            Cinematic <span className="font-serif italic font-light text-white/40">AI</span>
+            Cinematic <span className="font-serif italic font-light text-theme-tertiary">AI</span>
           </h1>
           <p className="editable-label mt-4 sm:mt-6 max-w-md text-sm sm:text-base">
             An archive of prompt engineering, architectural lighting blueprints, and computational typography.
@@ -50,7 +50,7 @@ export default function CinematicGallery() {
         <div className="flex items-center justify-center py-24">
           <div className="editorial-card px-8 py-6 rounded-lg">
             <div className="flex items-center gap-4">
-              <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-theme border-t-theme-primary rounded-full animate-spin" />
               <p className="editable-label">Loading cinematics...</p>
             </div>
           </div>
@@ -68,12 +68,12 @@ export default function CinematicGallery() {
                 </svg>
               </div>
               <div>
-                <p className="text-lg font-medium text-white mb-2">Failed to load cinematics</p>
+                <p className="text-lg font-medium text-theme-primary mb-2">Failed to load cinematics</p>
                 <p className="editable-label">{error}</p>
               </div>
               <button
                 onClick={() => window.location.reload()}
-                className="mt-2 px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-colors editable-label"
+                className="mt-2 px-6 py-2 bg-theme-elevated hover:bg-theme-elevated border border-theme rounded-lg transition-colors editable-label"
               >
                 Retry
               </button>
@@ -101,10 +101,10 @@ export default function CinematicGallery() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
               <div className="mt-4 sm:mt-5 flex flex-col sm:flex-row justify-between items-start sm:items-center px-1 gap-2">
-                <h3 className="text-lg sm:text-xl font-medium tracking-tight group-hover:text-white/80 transition-colors">
+                <h3 className="text-lg sm:text-xl font-medium tracking-tight group-hover-theme-secondary transition-colors">
                   {item.title}
                 </h3>
-                <span className="editable-label !text-xs !text-white/40 group-hover:!text-white transition-colors whitespace-nowrap">
+                <span className="editable-label !text-xs !text-theme-tertiary group-hover:!text-theme-primary transition-colors whitespace-nowrap">
                   View Data Blueprint →
                 </span>
               </div>

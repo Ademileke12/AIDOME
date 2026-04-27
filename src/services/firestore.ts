@@ -27,6 +27,8 @@ export interface Course {
   videoUrl?: string;
   thumbnail?: string;
   freeTrialDays?: number;
+  freeTrialHours?: number;
+  freeTrialMinutes?: number;
   freeTrialStartDate?: Date;
   priceAfterTrial?: number;
   currency?: string;
@@ -72,10 +74,22 @@ function docToData<T>(doc: QueryDocumentSnapshot<DocumentData>): T {
  * Calculate trial expiration timestamp
  * @param freeTrialStartDate - The date when the trial started
  * @param freeTrialDays - Number of days for the trial
+ * @param freeTrialHours - Number of hours for the trial
+ * @param freeTrialMinutes - Number of minutes for the trial
  * @returns Date object representing when the trial expires, or null if no trial
  */
-export function calculateTrialExpiration(freeTrialStartDate?: any, freeTrialDays?: number): Date | null {
-  if (!freeTrialStartDate || !freeTrialDays || freeTrialDays <= 0) {
+export function calculateTrialExpiration(
+  freeTrialStartDate?: any, 
+  freeTrialDays?: number,
+  freeTrialHours?: number,
+  freeTrialMinutes?: number
+): Date | null {
+  // Check if any trial duration is set
+  const hasTrial = (freeTrialDays && freeTrialDays > 0) || 
+                   (freeTrialHours && freeTrialHours > 0) || 
+                   (freeTrialMinutes && freeTrialMinutes > 0);
+  
+  if (!freeTrialStartDate || !hasTrial) {
     return null;
   }
   
@@ -90,7 +104,17 @@ export function calculateTrialExpiration(freeTrialStartDate?: any, freeTrialDays
   }
   
   const expirationDate = new Date(startDate);
-  expirationDate.setDate(expirationDate.getDate() + freeTrialDays);
+  
+  // Add days, hours, and minutes
+  if (freeTrialDays) {
+    expirationDate.setDate(expirationDate.getDate() + freeTrialDays);
+  }
+  if (freeTrialHours) {
+    expirationDate.setHours(expirationDate.getHours() + freeTrialHours);
+  }
+  if (freeTrialMinutes) {
+    expirationDate.setMinutes(expirationDate.getMinutes() + freeTrialMinutes);
+  }
   
   return expirationDate;
 }
@@ -103,18 +127,24 @@ export function calculateTrialExpiration(freeTrialStartDate?: any, freeTrialDays
 export function isTrialActive(course: Course): boolean {
   console.log('🔍 isTrialActive called with:', {
     freeTrialDays: course.freeTrialDays,
+    freeTrialHours: course.freeTrialHours,
+    freeTrialMinutes: course.freeTrialMinutes,
     freeTrialStartDate: course.freeTrialStartDate,
     freeTrialStartDateType: typeof course.freeTrialStartDate,
     hasToDate: course.freeTrialStartDate?.toDate ? 'yes' : 'no'
   });
   
-  // If no trial days set, trial is not active
-  if (!course.freeTrialDays || course.freeTrialDays <= 0) {
-    console.log('❌ No trial days set');
+  // Check if any trial duration is set
+  const hasTrial = (course.freeTrialDays && course.freeTrialDays > 0) || 
+                   (course.freeTrialHours && course.freeTrialHours > 0) || 
+                   (course.freeTrialMinutes && course.freeTrialMinutes > 0);
+  
+  if (!hasTrial) {
+    console.log('❌ No trial duration set');
     return false;
   }
   
-  // If trial days exist but no start date, assume trial just started (legacy courses)
+  // If trial duration exists but no start date, assume trial just started (legacy courses)
   let startDate = course.freeTrialStartDate;
   
   // Handle Firestore Timestamp objects
@@ -131,7 +161,12 @@ export function isTrialActive(course: Course): boolean {
   
   console.log('📅 Start date:', startDate);
   
-  const expirationDate = calculateTrialExpiration(startDate, course.freeTrialDays);
+  const expirationDate = calculateTrialExpiration(
+    startDate, 
+    course.freeTrialDays, 
+    course.freeTrialHours, 
+    course.freeTrialMinutes
+  );
   console.log('📅 Expiration date:', expirationDate);
   console.log('📅 Current date:', new Date());
   
@@ -372,9 +407,13 @@ export async function getCourseById(id: string): Promise<Course | null> {
  */
 export async function createCourse(course: Omit<Course, 'id'>): Promise<string> {
   try {
-    // Calculate trial start date if freeTrialDays is set
+    // Calculate trial start date if any trial duration is set
     const courseData = { ...course };
-    if (courseData.freeTrialDays && courseData.freeTrialDays > 0) {
+    const hasTrial = (courseData.freeTrialDays && courseData.freeTrialDays > 0) || 
+                     (courseData.freeTrialHours && courseData.freeTrialHours > 0) || 
+                     (courseData.freeTrialMinutes && courseData.freeTrialMinutes > 0);
+    
+    if (hasTrial) {
       courseData.freeTrialStartDate = new Date();
     }
     
@@ -398,8 +437,12 @@ export async function updateCourse(id: string, course: Partial<Course>): Promise
     // Remove id from update data if present
     const { id: _, ...updateData } = course as Course;
     
-    // If freeTrialDays is being updated and is greater than 0, set freeTrialStartDate to now
-    if (updateData.freeTrialDays && updateData.freeTrialDays > 0) {
+    // If any trial duration is being updated and is greater than 0, set freeTrialStartDate to now
+    const hasTrial = (updateData.freeTrialDays && updateData.freeTrialDays > 0) || 
+                     (updateData.freeTrialHours && updateData.freeTrialHours > 0) || 
+                     (updateData.freeTrialMinutes && updateData.freeTrialMinutes > 0);
+    
+    if (hasTrial) {
       updateData.freeTrialStartDate = new Date();
     }
     

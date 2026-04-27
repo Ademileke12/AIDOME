@@ -66,6 +66,46 @@ export function initializePaystackPayment(options: PaystackPaymentOptions): void
 }
 
 /**
+ * Calculate Paystack transaction fees for Nigerian transactions
+ * Paystack charges 1.5% + NGN 100 for local Nigerian cards
+ * @param amount - Amount in main currency unit (NGN)
+ * @returns Transaction fee in main currency unit
+ */
+export function calculatePaystackFee(amount: number): number {
+  // Paystack fee: 1.5% + NGN 100 (capped at NGN 2,000)
+  const percentageFee = amount * 0.015;
+  const flatFee = 100;
+  const totalFee = percentageFee + flatFee;
+  
+  // Cap at NGN 2,000
+  return Math.min(totalFee, 2000);
+}
+
+/**
+ * Calculate total amount including Paystack fees
+ * This ensures the merchant receives the full course price after fees
+ * @param coursePrice - Original course price in main currency unit
+ * @returns Object with breakdown of charges
+ */
+export function calculateTotalWithFees(coursePrice: number): {
+  coursePrice: number;
+  paystackFee: number;
+  totalAmount: number;
+} {
+  // Calculate fee on the course price
+  const paystackFee = calculatePaystackFee(coursePrice);
+  
+  // Total amount user pays = course price + fees
+  const totalAmount = coursePrice + paystackFee;
+  
+  return {
+    coursePrice: Math.round(coursePrice * 100) / 100, // Round to 2 decimal places
+    paystackFee: Math.round(paystackFee * 100) / 100,
+    totalAmount: Math.round(totalAmount * 100) / 100,
+  };
+}
+
+/**
  * Convert amount to smallest currency unit (kobo for NGN, cents for USD, etc.)
  * @param amount - Amount in main currency unit
  * @returns Amount in smallest currency unit

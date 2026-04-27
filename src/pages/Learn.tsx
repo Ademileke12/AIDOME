@@ -42,10 +42,19 @@ export default function Learn() {
         const accessRecord = accessedCourses.find(ac => ac.courseId === course.id);
         if (!accessRecord) return;
 
-        // Check if course had a trial and it's now expired
-        if (course.freeTrialDays && course.freeTrialDays > 0 && course.freeTrialStartDate) {
+        // Check if course had any trial duration and it's now expired
+        const hasTrialDuration = (course.freeTrialDays && course.freeTrialDays > 0) || 
+                                 (course.freeTrialHours && course.freeTrialHours > 0) || 
+                                 (course.freeTrialMinutes && course.freeTrialMinutes > 0);
+        
+        if (hasTrialDuration && course.freeTrialStartDate) {
           const wasTrialActive = isTrialActive(course);
-          const expirationDate = calculateTrialExpiration(course.freeTrialStartDate, course.freeTrialDays);
+          const expirationDate = calculateTrialExpiration(
+            course.freeTrialStartDate, 
+            course.freeTrialDays, 
+            course.freeTrialHours, 
+            course.freeTrialMinutes
+          );
           
           // If trial has expired
           if (!wasTrialActive && expirationDate && new Date() >= expirationDate) {
@@ -119,8 +128,8 @@ export default function Learn() {
     return (
       <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 max-w-[1200px] mx-auto flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mb-4" />
-          <p className="text-white/60">Loading courses...</p>
+          <div className="inline-block w-8 h-8 border-2 border-theme border-t-theme-primary rounded-full animate-spin mb-4" />
+          <p className="text-theme-secondary">Loading courses...</p>
         </div>
       </div>
     );
@@ -133,7 +142,7 @@ export default function Learn() {
           <p className="text-red-400 mb-4">{error}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-4 py-2 border border-white/20 rounded-lg hover:bg-white/5 transition-colors"
+            className="px-4 py-2 border border-theme rounded-lg hover:bg-theme-elevated transition-colors"
           >
             Retry
           </button>
@@ -167,7 +176,7 @@ export default function Learn() {
       >
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light tracking-tight leading-[1.1]">
           Curriculum <br/>
-          <span className="font-serif italic font-light text-white/40">Memos</span>
+          <span className="font-serif italic font-light text-theme-tertiary">Memos</span>
         </h1>
       </motion.div>
 
@@ -182,15 +191,15 @@ export default function Learn() {
             className="group relative"
           >
             {/* The line separator */}
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-white/[0.05] group-hover:bg-white/20 transition-colors duration-500" />
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-theme group-hover:bg-theme-strong transition-colors duration-500" />
             
-            <div className="py-8 sm:py-12 grid grid-cols-1 md:grid-cols-[200px_80px_1fr_160px] lg:grid-cols-[280px_100px_1fr_200px] gap-4 sm:gap-6 md:gap-8 items-start cursor-pointer hover:bg-white/[0.01] transition-colors p-3 sm:p-4 -mx-3 sm:-mx-4 rounded-xl"
+            <div className="py-8 sm:py-12 grid grid-cols-1 md:grid-cols-[200px_80px_1fr_160px] lg:grid-cols-[280px_100px_1fr_200px] gap-4 sm:gap-6 md:gap-8 items-start cursor-pointer hover:bg-theme-elevated transition-colors p-3 sm:p-4 -mx-3 sm:-mx-4 rounded-xl"
               onClick={() => handleCourseClick(course)}
             >
               
               {/* Thumbnail Image */}
               {course.thumbnail ? (
-                <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 group-hover:border-white/20 transition-colors">
+                <div className="w-full aspect-video rounded-lg overflow-hidden border border-theme group-hover:border-theme-strong transition-colors">
                   <img 
                     src={course.thumbnail} 
                     alt={course.title}
@@ -198,8 +207,8 @@ export default function Learn() {
                   />
                 </div>
               ) : (
-                <div className="w-full aspect-video rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                  <svg className="w-12 h-12 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-full aspect-video rounded-lg bg-theme-elevated border border-theme flex items-center justify-center">
+                  <svg className="w-12 h-12 text-theme-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 </div>
@@ -212,10 +221,10 @@ export default function Learn() {
               
               {/* Content */}
               <div>
-                <h2 className="text-2xl sm:text-3xl lg:text-5xl font-light tracking-tight group-hover:text-white transition-colors duration-300">
+                <h2 className="text-2xl sm:text-3xl lg:text-5xl font-light tracking-tight group-hover-theme-primary transition-colors duration-300">
                   {course.title}
                 </h2>
-                <p className="mt-4 sm:mt-6 text-white/50 text-xs sm:text-sm md:text-base leading-relaxed max-w-xl text-balance">
+                <p className="mt-4 sm:mt-6 text-theme-secondary text-xs sm:text-sm md:text-base leading-relaxed max-w-xl text-balance">
                   {course.description.length > 120 
                     ? `${course.description.substring(0, 120)}...` 
                     : course.description}
@@ -229,28 +238,34 @@ export default function Learn() {
                   {course.freeTrialDays && course.freeTrialDays > 0 && isTrialActive(course) && (
                     <FreeTrialTimer course={course} />
                   )}
+                  {course.freeTrialHours && course.freeTrialHours > 0 && isTrialActive(course) && !course.freeTrialDays && (
+                    <FreeTrialTimer course={course} />
+                  )}
+                  {course.freeTrialMinutes && course.freeTrialMinutes > 0 && isTrialActive(course) && !course.freeTrialDays && !course.freeTrialHours && (
+                    <FreeTrialTimer course={course} />
+                  )}
                   
                   {/* Course Status Badge */}
                   {course.isFree ? (
-                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-white !text-white rounded-full text-xs">
+                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-theme-primary !text-theme-primary rounded-full text-xs">
                       Free
                     </span>
-                  ) : course.freeTrialDays && course.freeTrialDays > 0 && isTrialActive(course) ? (
-                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-blue-500/30 text-blue-300 rounded-full text-xs">
-                      Free for {course.freeTrialDays} days
+                  ) : isTrialActive(course) ? (
+                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-green-500/30 text-green-300 rounded-full text-xs">
+                      Free Trial
                     </span>
                   ) : course.priceAfterTrial && course.priceAfterTrial > 0 ? (
-                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-white/10 text-white/60 rounded-full text-xs">
+                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-theme text-theme-secondary rounded-full text-xs">
                       {course.currency || 'USD'} {course.priceAfterTrial.toFixed(2)}
                     </span>
                   ) : (
-                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-white/10 text-white/40 rounded-full text-xs">
+                    <span className="inline-block px-2 sm:px-3 py-1 editable-label border border-theme text-theme-tertiary rounded-full text-xs">
                       Pro
                     </span>
                   )}
                 </div>
                 <div className="md:mt-8 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="editable-label !text-white/60 text-xs sm:text-sm">
+                  <span className="editable-label !text-theme-secondary text-xs sm:text-sm">
                     Enroll →
                   </span>
                 </div>

@@ -137,7 +137,7 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center px-6">
                 <svg
-                  className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-white/20"
+                  className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-theme-tertiary"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -149,8 +149,8 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                     d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="text-white/60 text-base sm:text-lg">Video content unavailable</p>
-                <p className="text-white/40 text-xs sm:text-sm mt-2">
+                <p className="text-theme-secondary text-base sm:text-lg">Video content unavailable</p>
+                <p className="text-theme-tertiary text-xs sm:text-sm mt-2">
                   This course doesn't have a video URL yet
                 </p>
               </div>
@@ -185,14 +185,14 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
               {/* Overlay with "Open in X" button */}
               <div className="absolute bottom-4 left-4 right-4">
                 <div className="glass-panel rounded-lg p-4">
-                  <p className="text-white/80 text-sm mb-3 text-center">
+                  <p className="text-theme-secondary text-sm mb-3 text-center">
                     Having trouble viewing? X content may require signing in.
                   </p>
                   <a
                     href={course.videoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-colors text-center text-sm"
+                    className="block w-full px-4 py-2 bg-theme-primary text-theme-surface rounded-lg font-medium hover:opacity-90 transition-all text-center text-sm"
                   >
                     Open in X (Twitter) →
                   </a>
@@ -215,7 +215,7 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center px-6">
                 <svg
-                  className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-white/20"
+                  className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-theme-tertiary"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -227,8 +227,8 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                   />
                 </svg>
-                <p className="text-white/60 text-base sm:text-lg">Invalid video URL</p>
-                <p className="text-white/40 text-xs sm:text-sm mt-2">
+                <p className="text-theme-secondary text-base sm:text-lg">Invalid video URL</p>
+                <p className="text-theme-tertiary text-xs sm:text-sm mt-2">
                   The video URL format is not supported
                 </p>
               </div>
@@ -265,7 +265,7 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
           {/* Close button */}
           <button
             onClick={handleClose}
-            className="absolute top-2 right-2 sm:-top-12 sm:right-0 w-10 h-10 flex items-center justify-center text-white/80 hover:text-white transition-colors duration-200 z-10 bg-black/50 sm:bg-transparent rounded-full"
+            className="absolute top-2 right-2 sm:-top-12 sm:right-0 w-10 h-10 flex items-center justify-center text-theme-secondary hover-theme-primary transition-colors duration-200 z-10 bg-black/50 sm:bg-transparent rounded-full"
             aria-label="Close video player"
           >
             <svg
@@ -284,7 +284,7 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
           </button>
 
           {/* Video player card */}
-          <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg sm:rounded-2xl overflow-hidden shadow-2xl">
+          <div className="glass-panel rounded-lg sm:rounded-2xl overflow-hidden shadow-2xl">
             {/* Video container */}
             <div className="relative w-full aspect-video bg-black" role="region" aria-label="Course video player">
               {!course.videoUrl ? (
@@ -292,7 +292,7 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center px-6">
                     <svg
-                      className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-white/20"
+                      className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-theme-tertiary"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -304,8 +304,8 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                         d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
                       />
                     </svg>
-                    <p className="text-white/60 text-base sm:text-lg">Video content unavailable</p>
-                    <p className="text-white/40 text-xs sm:text-sm mt-2">
+                    <p className="text-theme-secondary text-base sm:text-lg">Video content unavailable</p>
+                    <p className="text-theme-tertiary text-xs sm:text-sm mt-2">
                       This course doesn't have a video URL yet
                     </p>
                   </div>
@@ -340,14 +340,14 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                   {/* Overlay with "Open in X" button */}
                   <div className="absolute bottom-4 left-4 right-4">
                     <div className="glass-panel rounded-lg p-4">
-                      <p className="text-white/80 text-sm mb-3 text-center">
+                      <p className="text-theme-secondary text-sm mb-3 text-center">
                         Having trouble viewing? X content may require signing in.
                       </p>
                       <a
                         href={course.videoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block w-full px-4 py-2 bg-white text-black rounded-lg font-medium hover:bg-white/90 transition-colors text-center text-sm"
+                        className="block w-full px-4 py-2 bg-theme-primary text-theme-surface rounded-lg font-medium hover:opacity-90 transition-all text-center text-sm"
                       >
                         Open in X (Twitter) →
                       </a>
@@ -370,7 +370,7 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center px-6">
                     <svg
-                      className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-white/20"
+                      className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 text-theme-tertiary"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -382,8 +382,8 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                         d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                       />
                     </svg>
-                    <p className="text-white/60 text-base sm:text-lg">Invalid video URL</p>
-                    <p className="text-white/40 text-xs sm:text-sm mt-2">
+                    <p className="text-theme-secondary text-base sm:text-lg">Invalid video URL</p>
+                    <p className="text-theme-tertiary text-xs sm:text-sm mt-2">
                       The video URL format is not supported
                     </p>
                   </div>
@@ -394,7 +394,7 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
             {/* Course information */}
             <div className="p-4 sm:p-6 md:p-10">
               <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-6 mb-4 sm:mb-6">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-light tracking-tight text-white">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-light tracking-tight text-theme-primary">
                   {course.title}
                 </h2>
                 <span className="editable-label whitespace-nowrap sm:pt-2 text-xs sm:text-sm">
@@ -402,7 +402,7 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                 </span>
               </div>
               
-              <p className="text-white/60 text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl">
+              <p className="text-theme-secondary text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl">
                 {course.description}
               </p>
 
@@ -411,8 +411,8 @@ export default function VideoPlayer({ course, onClose, showExternalLink = true, 
                 <span
                   className={`inline-block px-3 py-1 editable-label border rounded-full text-xs sm:text-sm ${
                     course.isFree
-                      ? 'border-white !text-white'
-                      : 'border-white/10 text-white/40'
+                      ? 'border-theme-primary !text-theme-primary'
+                      : 'border-theme text-theme-tertiary'
                   }`}
                 >
                   {course.isFree ? 'Free' : 'Pro'}

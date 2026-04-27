@@ -19,6 +19,44 @@ export default function CoursePage() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
 
+  // Real-time trial expiration check
+  useEffect(() => {
+    if (!course || !user) return;
+
+    // Check trial status every second
+    const checkTrialStatus = () => {
+      // If course is free, always has access
+      if (course.isFree) {
+        return;
+      }
+
+      // Check if trial is still active
+      const trialActive = isTrialActive(course);
+      
+      // If trial just expired and user doesn't have purchase
+      if (!trialActive && hasAccess) {
+        console.log('⏰ Trial expired while user was watching - checking purchase status');
+        
+        // Check if user has purchased
+        checkCourseAccess(user.uid, course.id).then(purchased => {
+          if (!purchased) {
+            console.log('❌ No purchase found - revoking access and showing payment modal');
+            setHasAccess(false);
+            setShowPaymentModal(true);
+          }
+        });
+      }
+    };
+
+    // Check immediately
+    checkTrialStatus();
+
+    // Then check every second
+    const interval = setInterval(checkTrialStatus, 1000);
+
+    return () => clearInterval(interval);
+  }, [course, user, hasAccess]);
+
   useEffect(() => {
     const fetchCourseAndCheckAccess = async () => {
       if (!id) {
@@ -51,13 +89,15 @@ export default function CoursePage() {
         // Check if user has access to this course
         // Access is granted if:
         // 1. Course is free
-        // 2. Course has active free trial
+        // 2. Course has active free trial (days, hours, or minutes)
         // 3. User has purchased the course
         
         console.log('🔍 Course access check:', {
           title: courseData.title,
           isFree: courseData.isFree,
           freeTrialDays: courseData.freeTrialDays,
+          freeTrialHours: courseData.freeTrialHours,
+          freeTrialMinutes: courseData.freeTrialMinutes,
           freeTrialStartDate: courseData.freeTrialStartDate,
           hasStartDate: !!courseData.freeTrialStartDate
         });
@@ -66,39 +106,46 @@ export default function CoursePage() {
           console.log('✅ Course is free - granting access');
           setHasAccess(true);
           setShowPaymentModal(false);
-        } else if (courseData.freeTrialDays && courseData.freeTrialDays > 0) {
-          // If trial days exist but no start date, assume trial starts now
-          if (!courseData.freeTrialStartDate) {
-            console.log('⚠️ Trial days exist but no start date - setting to now');
-            courseData.freeTrialStartDate = new Date();
-          }
+        } else {
+          // Check if any trial duration is set
+          const hasTrialDuration = (courseData.freeTrialDays && courseData.freeTrialDays > 0) || 
+                                   (courseData.freeTrialHours && courseData.freeTrialHours > 0) || 
+                                   (courseData.freeTrialMinutes && courseData.freeTrialMinutes > 0);
           
-          // Check if trial is active
-          const trialActive = isTrialActive(courseData);
-          console.log('🔍 Trial active check:', trialActive);
-          
-          if (trialActive) {
-            console.log('✅ Trial is active - granting access');
-            setHasAccess(true);
-            setShowPaymentModal(false);
+          if (hasTrialDuration) {
+            // If trial duration exists but no start date, assume trial starts now
+            if (!courseData.freeTrialStartDate) {
+              console.log('⚠️ Trial duration exists but no start date - setting to now');
+              courseData.freeTrialStartDate = new Date();
+            }
+            
+            // Check if trial is active
+            const trialActive = isTrialActive(courseData);
+            console.log('🔍 Trial active check:', trialActive);
+            
+            if (trialActive) {
+              console.log('✅ Trial is active - granting access');
+              setHasAccess(true);
+              setShowPaymentModal(false);
+            } else {
+              console.log('❌ Trial expired - checking purchase');
+              // Trial has expired, check if user purchased
+              const purchased = await checkCourseAccess(user.uid, courseData.id);
+              console.log('💰 Purchase check result:', purchased);
+              setHasAccess(purchased);
+              setShowPaymentModal(!purchased);
+            }
           } else {
-            console.log('❌ Trial expired - checking purchase');
-            // Trial has expired, check if user purchased
+            console.log('💰 No trial - checking purchase');
+            // No trial, check if user has purchased
             const purchased = await checkCourseAccess(user.uid, courseData.id);
             console.log('💰 Purchase check result:', purchased);
             setHasAccess(purchased);
-            setShowPaymentModal(!purchased);
-          }
-        } else {
-          console.log('💰 No trial - checking purchase');
-          // No trial, check if user has purchased
-          const purchased = await checkCourseAccess(user.uid, courseData.id);
-          console.log('💰 Purchase check result:', purchased);
-          setHasAccess(purchased);
-          
-          // If no access, show payment modal
-          if (!purchased) {
-            setShowPaymentModal(true);
+            
+            // If no access, show payment modal
+            if (!purchased) {
+              setShowPaymentModal(true);
+            }
           }
         }
         
@@ -132,8 +179,8 @@ export default function CoursePage() {
     return (
       <div className="min-h-screen pt-32 pb-24 px-6 md:px-12 max-w-[1400px] mx-auto flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin mb-4" />
-          <p className="text-white/60">Loading course...</p>
+          <div className="inline-block w-8 h-8 border-2 border-theme border-t-theme-primary rounded-full animate-spin mb-4" />
+          <p className="text-theme-secondary">Loading course...</p>
         </div>
       </div>
     );
@@ -146,7 +193,7 @@ export default function CoursePage() {
           <p className="text-red-400 mb-4">{error || 'Course not found'}</p>
           <button 
             onClick={handleBack}
-            className="px-4 py-2 border border-white/20 rounded-lg hover:bg-white/5 transition-colors"
+            className="px-4 py-2 border border-theme rounded-lg hover:bg-theme-elevated transition-colors"
           >
             Back to Courses
           </button>
@@ -182,7 +229,7 @@ export default function CoursePage() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5 }}
         onClick={handleBack}
-        className="mb-8 flex items-center gap-2 text-white/60 hover:text-white transition-colors group"
+        className="mb-8 flex items-center gap-2 text-theme-secondary hover-theme-primary transition-colors group"
       >
         <svg 
           className="w-5 h-5 group-hover:-translate-x-1 transition-transform" 
@@ -207,7 +254,7 @@ export default function CoursePage() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.1] mb-4 sm:mb-6">
               {course.title}
             </h1>
-            <p className="text-white/60 text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl whitespace-pre-line">
+            <p className="text-theme-secondary text-sm sm:text-base md:text-lg leading-relaxed max-w-3xl whitespace-pre-line">
               {course.description}
             </p>
           </div>
@@ -218,26 +265,26 @@ export default function CoursePage() {
               {String(course.modules).padStart(2, '0')} Modules
             </span>
             
-            {/* Free trial timer */}
-            {course.freeTrialDays && course.freeTrialDays > 0 && isTrialActive(course) && (
+            {/* Free trial timer - show if any trial duration is active */}
+            {isTrialActive(course) && (
               <FreeTrialTimer course={course} />
             )}
             
             {/* Course status badge */}
             {course.isFree ? (
-              <span className="inline-block px-3 py-1 editable-label border border-white !text-white rounded-full text-xs">
+              <span className="inline-block px-3 py-1 editable-label border border-theme-primary !text-theme-primary rounded-full text-xs">
                 Free
               </span>
-            ) : course.freeTrialDays && course.freeTrialDays > 0 && isTrialActive(course) ? (
-              <span className="inline-block px-3 py-1 editable-label border border-blue-500/30 text-blue-300 rounded-full text-xs">
+            ) : isTrialActive(course) ? (
+              <span className="inline-block px-3 py-1 editable-label border border-green-500/30 text-green-300 rounded-full text-xs">
                 Free Trial Active
               </span>
             ) : course.priceAfterTrial && course.priceAfterTrial > 0 ? (
-              <span className="inline-block px-3 py-1 editable-label border border-white/10 text-white/60 rounded-full text-xs">
+              <span className="inline-block px-3 py-1 editable-label border border-theme text-theme-secondary rounded-full text-xs">
                 {course.currency || 'USD'} {course.priceAfterTrial.toFixed(2)}
               </span>
             ) : (
-              <span className="inline-block px-3 py-1 editable-label border border-white/10 text-white/40 rounded-full text-xs">
+              <span className="inline-block px-3 py-1 editable-label border border-theme text-theme-tertiary rounded-full text-xs">
                 Pro
               </span>
             )}

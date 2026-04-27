@@ -21,7 +21,9 @@ export default function FreeTrialTimer({ course }: FreeTrialTimerProps) {
     const calculateTimeRemaining = (): TimeRemaining | null => {
       const expirationDate = calculateTrialExpiration(
         course.freeTrialStartDate,
-        course.freeTrialDays
+        course.freeTrialDays,
+        course.freeTrialHours,
+        course.freeTrialMinutes
       );
 
       if (!expirationDate) {
@@ -65,7 +67,7 @@ export default function FreeTrialTimer({ course }: FreeTrialTimerProps) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [course.freeTrialStartDate, course.freeTrialDays]);
+  }, [course.freeTrialStartDate, course.freeTrialDays, course.freeTrialHours, course.freeTrialMinutes]);
 
   if (!timeRemaining || timeRemaining.total <= 0) {
     return null;
