@@ -3,14 +3,16 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to check if user is authenticated
+    // ============================================================================
+    // HELPER FUNCTIONS
+    // ============================================================================
+    
+    // Check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
     
-    // Helper function to check if user is an admin
-    // Note: For production, admin emails should be stored in Firestore or Firebase Functions
-    // This is a simplified version for development
+    // Check if user is an admin
     function isAdmin() {
       return isAuthenticated() && 
              request.auth.token.email in [
@@ -19,48 +21,134 @@ service cloud.firestore {
              ];
     }
     
+    // Calculate trial expiration timestamp
+    // Returns timestamp in milliseconds when trial expires
+    function calculateTrialExpiration(course) {
+      let startDate = course.freeTrialStartDate;
+      let days = course.freeTrialDays != null ? course.freeTrialDays : 0;
+      let hours = course.freeTrialHours != null ? course.freeTrialHours : 0;
+      let minutes = course.freeTrialMinutes != null ? course.freeTrialMinutes : 0;
+      
+      // Convert everything to milliseconds
+      let daysMs = days * 24 * 60 * 60 * 1000;
+      let hoursMs = hours * 60 * 60 * 1000;
+      let minutesMs = minutes * 60 * 1000;
+      
+      return startDate.toMillis() + daysMs + hoursMs + minutesMs;
+    }
+    
+    // Check if trial is currently active for a course
+    function isTrialActive(course) {
+      // Check if any trial duration is set
+      let hasTrial = (course.freeTrialDays != null && course.freeTrialDays > 0) ||
+                     (course.freeTrialHours != null && course.freeTrialHours > 0) ||
+                     (course.freeTrialMinutes != null && course.freeTrialMinutes > 0);
+      
+      // If no trial duration, return false
+      if (!hasTrial) {
+        return false;
+      }
+      
+      // If no start date, trial hasn't started yet
+      if (course.freeTrialStartDate == null) {
+        return false;
+      }
+      
+      // Calculate expiration and check if current time is before expiration
+      let expirationTime = calculateTrialExpiration(course);
+      return request.time.toMillis() < expirationTime;
+    }
+    
+    // Check if user has purchased access to a course
+    function hasPurchasedCourse(userId, courseId) {
+      return exists(/databases/$(database)/documents/courseAccess/$(userId + '_' + courseId));
+    }
+    
+    // Check if user has access to a course (free, trial, or purchased)
+    function hasAccessToCourse(userId, courseId) {
+      let course = get(/databases/$(database)/documents/courses/$(courseId)).data;
+      
+      // If course is free, everyone has access
+      if (course.isFree == true) {
+        return true;
+      }
+      
+      // Check if trial is active
+      if (isTrialActive(course)) {
+        return true;
+      }
+      
+      // Check if user has purchased the course
+      return hasPurchasedCourse(userId, courseId);
+    }
+    
+    // ============================================================================
+    // COLLECTION RULES
+    // ============================================================================
+    
     // Rules for designs collection
     match /designs/{designId} {
-      allow read: if true; // Public read access for home page preview
+      // Public read access for gallery preview
+      allow read: if true;
+      // Only admins can create, update, or delete
       allow write: if isAdmin();
     }
     
     // Rules for cinematics collection
     match /cinematics/{cinematicId} {
-      allow read: if true; // Public read access for home page preview
+      // Public read access for gallery preview
+      allow read: if true;
+      // Only admins can create, update, or delete
       allow write: if isAdmin();
     }
     
     // Rules for courses collection
     match /courses/{courseId} {
-      allow read: if true; // Public read access for home page preview
+      // Public read access for course listing and metadata
+      // This allows users to see course titles, descriptions, prices, etc.
+      allow read: if true;
+      
+      // Only admins can create, update, or delete courses
       allow write: if isAdmin();
+      
+      // SECURITY: Video URLs and sensitive content should be protected
+      // Consider moving videoUrl to a separate protected collection
+      // or using Firebase Storage with signed URLs
     }
     
-    // Rules for courseAccess collection
+    // Rules for courseAccess collection (purchase records)
     match /courseAccess/{accessId} {
-      // Users can read their own purchases
+      // Users can read their own purchase records
+      // Document ID format: userId_courseId
       allow read: if isAuthenticated() && 
-                     resource.data.userId == request.auth.uid;
-      // Admins can read all purchases
+                     accessId.matches(request.auth.uid + '_.*');
+      
+      // Admins can read all purchase records
       allow read: if isAdmin();
-      // Only admins can write (users cannot write directly)
-      allow write: if isAdmin();
+      
+      // Only admins can create purchase records
+      // This prevents users from granting themselves access
+      // Purchases should be created via Cloud Functions after payment verification
+      allow create: if isAdmin();
+      
+      // Prevent updates and deletes to maintain audit trail
+      allow update, delete: if false;
     }
     
     // Rules for comments collection
     match /comments/{commentId} {
-      // All authenticated users can read all comments
-      allow read: if isAuthenticated();
+      // Users can only read comments for courses they have access to
+      allow read: if isAuthenticated() && 
+                     hasAccessToCourse(request.auth.uid, resource.data.courseId);
       
-      // Authenticated users can create comments
-      // Validate that required fields are present and userId matches auth
+      // Users can create comments only for courses they have access to
       allow create: if isAuthenticated() && 
                        request.resource.data.keys().hasAll(['courseId', 'userId', 'userName', 'userPhotoURL', 'text', 'timestamp']) &&
                        request.resource.data.userId == request.auth.uid &&
                        request.resource.data.text is string &&
                        request.resource.data.text.size() > 0 &&
-                       request.resource.data.text.size() <= 1000;
+                       request.resource.data.text.size() <= 1000 &&
+                       hasAccessToCourse(request.auth.uid, request.resource.data.courseId);
       
       // Users can delete only their own comments
       allow delete: if isAuthenticated() && 
@@ -68,6 +156,26 @@ service cloud.firestore {
       
       // Admins can delete any comment
       allow delete: if isAdmin();
+      
+      // Prevent comment updates to maintain integrity
+      allow update: if false;
     }
+    
+    // ============================================================================
+    // SECURITY NOTES
+    // ============================================================================
+    
+    // 1. Trial Expiration: Calculated server-side to prevent client manipulation
+    // 2. Purchase Verification: Only admins can create purchase records
+    // 3. Access Control: Comments are restricted to users with course access
+    // 4. Audit Trail: Purchase records cannot be updated or deleted
+    // 5. Video Protection: Consider moving video URLs to protected storage
+    
+    // RECOMMENDED IMPROVEMENTS:
+    // - Implement Cloud Functions for payment webhook verification
+    // - Move video URLs to Firebase Storage with signed URLs
+    // - Add rate limiting for comment creation
+    // - Implement IP-based access logging
+    // - Add device fingerprinting for account sharing detection
   }
 }

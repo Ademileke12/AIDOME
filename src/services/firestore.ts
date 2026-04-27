@@ -6,6 +6,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  setDoc,
   DocumentData,
   QueryDocumentSnapshot,
   query,
@@ -481,13 +482,12 @@ export async function deleteCourse(id: string): Promise<void> {
  */
 export async function checkCourseAccess(userId: string, courseId: string): Promise<boolean> {
   try {
-    const querySnapshot = await getDocs(collection(db, COLLECTIONS.COURSE_ACCESS));
-    const purchases = querySnapshot.docs.map(doc => docToData<CourseAccess>(doc));
+    // Use composite document ID for efficient lookup: userId_courseId
+    const accessId = `${userId}_${courseId}`;
+    const docRef = doc(db, COLLECTIONS.COURSE_ACCESS, accessId);
+    const docSnap = await getDoc(docRef);
     
-    // Check if user has purchased this course
-    return purchases.some(purchase => 
-      purchase.userId === userId && purchase.courseId === courseId
-    );
+    return docSnap.exists();
   } catch (error) {
     console.error(`Error checking course access for user ${userId} and course ${courseId}:`, error);
     throw new Error('Failed to check course access');
@@ -497,18 +497,24 @@ export async function checkCourseAccess(userId: string, courseId: string): Promi
 /**
  * Record a course purchase in Firestore
  * @param purchase - Purchase data without ID
- * @returns Promise resolving to the new document ID
+ * @returns Promise resolving to the composite document ID (userId_courseId)
  * @throws Error if Firestore operation fails
  */
 export async function recordCoursePurchase(purchase: Omit<CourseAccess, 'id'>): Promise<string> {
   try {
+    // Use composite document ID for efficient lookup and to prevent duplicates
+    const accessId = `${purchase.userId}_${purchase.courseId}`;
+    
     const purchaseData = {
       ...purchase,
       purchaseDate: purchase.purchaseDate || new Date(),
     };
     
-    const docRef = await addDoc(collection(db, COLLECTIONS.COURSE_ACCESS), purchaseData);
-    return docRef.id;
+    // Use set() instead of addDoc() to use custom document ID
+    const docRef = doc(db, COLLECTIONS.COURSE_ACCESS, accessId);
+    await setDoc(docRef, purchaseData);
+    
+    return accessId;
   } catch (error) {
     console.error('Error recording course purchase:', error);
     throw new Error('Failed to record course purchase in database');
