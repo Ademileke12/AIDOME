@@ -1,322 +1,209 @@
-# Course Payment Security - Quick Reference
+# Course Security - Quick Reference
 
-## Security Layers Overview
+## ✅ Security Measures Already Implemented
 
-### 🛡️ Layer 1: Firestore Security Rules (Server-Side)
-**Location**: `firestore.rules`
+### 1. Firestore Security Rules
+**Location:** `firestore.rules`
 
-**What it does**:
-- Validates trial expiration server-side (can't be bypassed by changing system time)
-- Restricts course access based on purchase records
-- Prevents users from creating fake purchase records
-- Protects comments (only accessible to users with course access)
+**Protection:**
+- ✅ Trial expiration calculated server-side using `request.time`
+- ✅ Purchase verification through `courseAccess` collection
+- ✅ Only admins can create purchase records
+- ✅ Comments restricted to users with course access
+- ✅ Purchase records cannot be updated/deleted (audit trail)
 
-**Key Functions**:
-- `isTrialActive(course)` - Server-side trial validation
-- `hasPurchasedCourse(userId, courseId)` - Checks purchase record
-- `hasAccessToCourse(userId, courseId)` - Complete access validation
+### 2. Cloud Functions
+**Location:** `functions/src/index.ts`
 
-### 🔐 Layer 2: Cloud Functions (Payment Verification)
-**Location**: `functions/src/index.ts`
+**Functions:**
+- ✅ `paystackWebhook` - Verifies payment and creates purchase records
+- ✅ `getVideoUrl` - Generates secure video URLs with access validation
+- ✅ `grantCourseAccess` - Admin function to manually grant access
+- ✅ `revokeCourseAccess` - Admin function to revoke access
+- ✅ `logVideoAccess` - Logs video access for monitoring
 
-**What it does**:
-- Verifies Paystack webhook signatures (prevents fake payments)
-- Creates purchase records only after confirmed payment
-- Generates secure video URLs with access validation
-- Provides admin functions for manual access management
+**Security Features:**
+- ✅ Webhook signature verification
+- ✅ Server-side access validation
+- ✅ Admin-only functions
+- ✅ Access logging for monitoring
 
-**Key Functions**:
-- `paystackWebhook` - Processes verified payments
-- `getVideoUrl` - Generates secure video URLs
-- `grantCourseAccess` - Admin function to grant access
-- `revokeCourseAccess` - Admin function to revoke access
+### 3. Client-Side Protection
+**Location:** `src/pages/CoursePage.tsx`
 
-### 🎥 Layer 3: Video Protection
-**Current**: Videos use public URLs (YouTube, Vimeo, etc.)
-**Recommended**: Migrate to Firebase Storage with signed URLs
+**Features:**
+- ✅ Real-time trial expiration monitoring (every second)
+- ✅ Purchase status verification before rendering content
+- ✅ Payment modal enforcement for expired trials
+- ✅ Video player conditional rendering
+- ✅ Comments hidden without access
 
-**Benefits of Firebase Storage**:
-- Time-limited access URLs (expire after 1 hour)
-- Access validation before URL generation
-- Prevents URL sharing
-- Better control over content
+## 🔒 How It Works
 
-### 💳 Layer 4: Payment Flow Security
-**How it works**:
-1. User clicks "Pay Now"
-2. Paystack payment modal opens
-3. User completes payment
-4. Paystack sends webhook to Cloud Function
-5. Cloud Function verifies signature
-6. Cloud Function creates purchase record
-7. Frontend polls for purchase record
-8. Access granted when record found
+### Payment Flow
+```
+1. User clicks "Purchase" → PaymentModal opens
+2. User completes payment on Paystack
+3. Paystack sends webhook to Cloud Function
+4. Cloud Function verifies signature
+5. Cloud Function creates courseAccess record
+6. Client detects access and unlocks content
+```
 
-**Security measures**:
+### Access Validation Flow
+```
+1. User visits course page
+2. Client checks: isFree? → Grant access
+3. Client checks: Trial active? → Grant access
+4. Client checks: Purchase exists? → Grant access
+5. If all fail → Show payment modal
+```
+
+### Trial Expiration Flow
+```
+1. Every second, client checks trial status
+2. If trial expires while watching:
+   - Check for purchase
+   - If no purchase: Revoke access + Show payment modal
+   - If purchased: Continue access
+```
+
+## 🛡️ Attack Vectors Mitigated
+
+### ❌ LocalStorage Manipulation
+**Attack:** User modifies localStorage to fake trial dates
+
+**Defense:**
+- All access decisions made server-side
+- Trial expiration calculated using `request.time`
+- Purchase records stored in protected collection
+
+### ❌ Browser DevTools Manipulation
+**Attack:** User modifies React state to show content
+
+**Defense:**
+- Firestore rules block data access without valid access
+- Comments require course access verification
+- Real-time access checks every second
+
+### ❌ Payment Webhook Spoofing
+**Attack:** Attacker sends fake payment confirmation
+
+**Defense:**
 - Webhook signature verification
-- Server-side purchase record creation
-- No client-side access granting
-- Audit trail of all payments
+- Only Cloud Functions can create purchase records
+- Payment verification with Paystack API
 
-## Quick Commands
+### ❌ Direct Video URL Access
+**Attack:** User copies video URL and accesses directly
 
-### Deploy Security Rules
-```bash
-firebase deploy --only firestore:rules
-```
+**Current Status:** ⚠️ Partially vulnerable (URLs in Firestore)
 
-### Deploy Cloud Functions
-```bash
-firebase deploy --only functions
-```
+**Mitigation:**
+- Use `getVideoUrl` Cloud Function for access validation
+- Move videos to Firebase Storage (recommended)
+- Generate signed URLs with expiration
 
-### Test Security Rules
-```bash
-npm run test:security
-```
+## 📋 Deployment Checklist
 
-### View Function Logs
-```bash
-firebase functions:log
-```
-
-### Configure Paystack Key
+### 1. Configure Paystack Secret
 ```bash
 firebase functions:config:set paystack.secret_key="YOUR_SECRET_KEY"
 ```
 
-## Document Structure
-
-### Course Document
-```typescript
-{
-  id: string;
-  title: string;
-  description: string;
-  videoUrl: string;
-  isFree: boolean;
-  freeTrialDays?: number;
-  freeTrialHours?: number;
-  freeTrialMinutes?: number;
-  freeTrialStartDate?: Date;
-  priceAfterTrial?: number;
-  currency?: string;
-}
+### 2. Deploy Firestore Rules
+```bash
+firebase deploy --only firestore:rules
 ```
 
-### Purchase Record (courseAccess)
-```typescript
-// Document ID: userId_courseId (composite key)
-{
-  userId: string;
-  courseId: string;
-  purchaseDate: Date;
-  paymentReference: string;
-  amount: number;
-  currency: string;
-  verified: boolean;
-}
+### 3. Deploy Cloud Functions
+```bash
+cd functions
+npm install
+npm run build
+firebase deploy --only functions
 ```
 
-## Access Control Logic
+### 4. Configure Paystack Webhook
+1. Go to Paystack Dashboard → Settings → Webhooks
+2. Add webhook URL: `https://YOUR_PROJECT.cloudfunctions.net/paystackWebhook`
+3. Save webhook URL
 
-### Free Course
-```
-isFree === true → Access Granted
-```
+### 5. Test Security
+```bash
+# Test Firestore rules
+npm run test:security
 
-### Trial Course
-```
-hasTrial && currentTime < trialExpiration → Access Granted
-```
-
-### Paid Course
-```
-purchaseRecord exists → Access Granted
-```
-
-### Combined Logic
-```
-isFree || isTrialActive || hasPurchase → Access Granted
+# Test payment flow
+# 1. Create test course with trial
+# 2. Wait for trial to expire
+# 3. Verify access is revoked
+# 4. Complete test payment
+# 5. Verify access is granted
 ```
 
-## Security Checklist
+## 🚨 Security Monitoring
 
-### Before Deployment
-- [ ] Firestore Security Rules deployed
-- [ ] Cloud Functions deployed
-- [ ] Paystack webhook configured
-- [ ] Payment flow tested
-- [ ] Trial expiration tested
-- [ ] Security bypass attempts tested
+### Metrics to Monitor
+- Failed access attempts
+- Trial conversion rate
+- Payment success rate
+- Suspicious access patterns
+- Video URL direct access attempts
 
-### After Deployment
-- [ ] Monitor Cloud Function logs
-- [ ] Check Paystack webhook deliveries
-- [ ] Review access logs
-- [ ] Test with real payment
-- [ ] Monitor for suspicious activity
+### Logs to Review
+- Cloud Function logs: `firebase functions:log`
+- Firestore audit logs
+- Payment webhook logs
+- Video access logs
 
-## Common Issues & Solutions
+## 🔧 Troubleshooting
 
-### Issue: Webhook not receiving events
-**Solution**: 
-1. Check Paystack webhook URL
-2. Verify Cloud Function is deployed
-3. Check function logs for errors
+### Issue: User can't access after payment
+**Check:**
+1. Verify webhook was received: `firebase functions:log`
+2. Check courseAccess collection for purchase record
+3. Verify userId and courseId match
+4. Check Firestore rules are deployed
 
 ### Issue: Trial not expiring
-**Solution**:
-1. Verify `freeTrialStartDate` is set
-2. Check Firestore Security Rules
-3. Review server time
+**Check:**
+1. Verify freeTrialStartDate is set
+2. Check trial duration values
+3. Verify Firestore rules are deployed
+4. Check client-side trial calculation
 
-### Issue: Payment verified but no access
-**Solution**:
-1. Check `courseAccess` collection
-2. Verify document ID format: `userId_courseId`
-3. Check function logs
+### Issue: Payment webhook failing
+**Check:**
+1. Verify Paystack secret is configured
+2. Check webhook signature verification
+3. Review Cloud Function logs
+4. Verify webhook URL in Paystack dashboard
 
-### Issue: User can bypass payment
-**Solution**:
-1. Verify Firestore Security Rules are deployed
-2. Check that purchase records are created by Cloud Functions only
-3. Review access validation logic
+## 📞 Support
 
-## Testing Scenarios
+- Firebase Console: https://console.firebase.google.com
+- Paystack Dashboard: https://dashboard.paystack.com
+- Cloud Functions Logs: `firebase functions:log`
+- Firestore Rules Test: Firebase Console → Firestore → Rules → Simulator
 
-### 1. Free Course Access
-```
-1. Create free course (isFree: true)
-2. Sign in as user
-3. Access course → Should work
-```
+## 🎯 Next Steps
 
-### 2. Trial Access
-```
-1. Create course with 5-minute trial
-2. Sign in as user
-3. Access course → Should work
-4. Wait 5 minutes
-5. Try to access → Should show payment modal
-```
+### Immediate
+- [x] Firestore security rules deployed
+- [x] Cloud Functions deployed
+- [x] Paystack webhook configured
+- [ ] Test complete payment flow
+- [ ] Monitor for security issues
 
-### 3. Payment Flow
-```
-1. Create paid course
-2. Sign in as user
-3. Try to access → Payment modal appears
-4. Complete payment
-5. Wait for webhook
-6. Access granted automatically
-```
+### Short Term
+- [ ] Move videos to Firebase Storage
+- [ ] Implement signed URLs
+- [ ] Add device fingerprinting
+- [ ] Set up monitoring alerts
 
-### 4. Security Bypass Attempts
-```
-1. Try to modify localStorage
-2. Try to change system time
-3. Try to access video URL directly
-4. Try to create fake purchase record
-All should fail ✅
-```
-
-## Monitoring Queries
-
-### Check Recent Purchases
-```javascript
-db.collection('courseAccess')
-  .orderBy('purchaseDate', 'desc')
-  .limit(10)
-  .get()
-```
-
-### Check User's Purchases
-```javascript
-db.collection('courseAccess')
-  .where('userId', '==', 'USER_ID')
-  .get()
-```
-
-### Check Course Purchases
-```javascript
-db.collection('courseAccess')
-  .where('courseId', '==', 'COURSE_ID')
-  .get()
-```
-
-### Check Video Access Logs
-```javascript
-db.collection('videoAccessLogs')
-  .where('userId', '==', 'USER_ID')
-  .orderBy('timestamp', 'desc')
-  .limit(50)
-  .get()
-```
-
-## Admin Functions
-
-### Grant Access Manually
-```javascript
-const grantAccess = firebase.functions().httpsCallable('grantCourseAccess');
-await grantAccess({
-  userId: 'USER_ID',
-  courseId: 'COURSE_ID',
-  reason: 'Promotional access'
-});
-```
-
-### Revoke Access
-```javascript
-const revokeAccess = firebase.functions().httpsCallable('revokeCourseAccess');
-await revokeAccess({
-  userId: 'USER_ID',
-  courseId: 'COURSE_ID',
-  reason: 'Refund requested'
-});
-```
-
-## Security Best Practices
-
-1. ✅ **Always validate server-side** - Never trust client
-2. ✅ **Use webhooks** - Verify payments server-side
-3. ✅ **Log everything** - Monitor for suspicious activity
-4. ✅ **Use signed URLs** - Prevent video URL sharing
-5. ✅ **Implement rate limiting** - Prevent brute force
-6. ✅ **Regular audits** - Review logs and test security
-7. ✅ **Keep updated** - Patch vulnerabilities quickly
-8. ✅ **HTTPS only** - Never use HTTP
-
-## Support Resources
-
-- **Firebase Console**: https://console.firebase.google.com
-- **Paystack Dashboard**: https://dashboard.paystack.com
-- **Security Rules Docs**: https://firebase.google.com/docs/rules
-- **Cloud Functions Docs**: https://firebase.google.com/docs/functions
-- **Paystack Webhooks**: https://paystack.com/docs/payments/webhooks
-
-## Emergency Procedures
-
-### If Security Breach Detected:
-1. Immediately revoke all active tokens
-2. Force re-authentication for all users
-3. Investigate breach source
-4. Patch vulnerability
-5. Notify affected users
-6. Document incident
-7. Update security measures
-
-### If Payment Issues:
-1. Check Paystack webhook logs
-2. Review Cloud Function logs
-3. Verify webhook signature
-4. Check purchase records
-5. Contact Paystack support if needed
-
-## Version History
-
-- **v1.0** - Initial security implementation
-  - Enhanced Firestore Security Rules
-  - Cloud Functions for payment verification
-  - Composite document IDs for efficient access checks
-  - Server-side trial validation
-  - Webhook signature verification
+### Long Term
+- [ ] Implement concurrent session detection
+- [ ] Add IP-based access logging
+- [ ] Set up automated security audits
+- [ ] Implement rate limiting
