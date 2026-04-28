@@ -92,18 +92,7 @@ export default function CoursePage() {
         // 2. Course has active free trial (days, hours, or minutes)
         // 3. User has purchased the course
         
-        console.log('🔍 Course access check:', {
-          title: courseData.title,
-          isFree: courseData.isFree,
-          freeTrialDays: courseData.freeTrialDays,
-          freeTrialHours: courseData.freeTrialHours,
-          freeTrialMinutes: courseData.freeTrialMinutes,
-          freeTrialStartDate: courseData.freeTrialStartDate,
-          hasStartDate: !!courseData.freeTrialStartDate
-        });
-        
         if (courseData.isFree) {
-          console.log('✅ Course is free - granting access');
           setHasAccess(true);
           setShowPaymentModal(false);
         } else {
@@ -115,31 +104,24 @@ export default function CoursePage() {
           if (hasTrialDuration) {
             // If trial duration exists but no start date, assume trial starts now
             if (!courseData.freeTrialStartDate) {
-              console.log('⚠️ Trial duration exists but no start date - setting to now');
               courseData.freeTrialStartDate = new Date();
             }
             
             // Check if trial is active
             const trialActive = isTrialActive(courseData);
-            console.log('🔍 Trial active check:', trialActive);
             
             if (trialActive) {
-              console.log('✅ Trial is active - granting access');
               setHasAccess(true);
               setShowPaymentModal(false);
             } else {
-              console.log('❌ Trial expired - checking purchase');
               // Trial has expired, check if user purchased
               const purchased = await checkCourseAccess(user.uid, courseData.id);
-              console.log('💰 Purchase check result:', purchased);
               setHasAccess(purchased);
               setShowPaymentModal(!purchased);
             }
           } else {
-            console.log('💰 No trial - checking purchase');
             // No trial, check if user has purchased
             const purchased = await checkCourseAccess(user.uid, courseData.id);
-            console.log('💰 Purchase check result:', purchased);
             setHasAccess(purchased);
             
             // If no access, show payment modal
@@ -148,14 +130,21 @@ export default function CoursePage() {
             }
           }
         }
-        
-        console.log('🎯 Final access decision:', {
-          hasAccess: courseData.isFree || (courseData.freeTrialDays && courseData.freeTrialDays > 0 && isTrialActive(courseData)),
-          willShowComments: courseData.isFree || (courseData.freeTrialDays && courseData.freeTrialDays > 0 && isTrialActive(courseData))
-        });
       } catch (err) {
         console.error('Error fetching course:', err);
-        setError('Failed to load course. Please try again later.');
+        // More specific error handling
+        if (err instanceof Error) {
+          // Check if it's a permission error
+          if (err.message.includes('permission') || err.message.includes('denied')) {
+            setError('You do not have permission to access this course.');
+          } else if (err.message.includes('not found')) {
+            setError('Course not found.');
+          } else {
+            setError('Failed to load course. Please try again later.');
+          }
+        } else {
+          setError('Failed to load course. Please try again later.');
+        }
       } finally {
         setLoading(false);
       }

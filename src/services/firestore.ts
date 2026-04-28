@@ -126,22 +126,12 @@ export function calculateTrialExpiration(
  * @returns true if trial is active, false otherwise
  */
 export function isTrialActive(course: Course): boolean {
-  console.log('🔍 isTrialActive called with:', {
-    freeTrialDays: course.freeTrialDays,
-    freeTrialHours: course.freeTrialHours,
-    freeTrialMinutes: course.freeTrialMinutes,
-    freeTrialStartDate: course.freeTrialStartDate,
-    freeTrialStartDateType: typeof course.freeTrialStartDate,
-    hasToDate: course.freeTrialStartDate?.toDate ? 'yes' : 'no'
-  });
-  
   // Check if any trial duration is set
   const hasTrial = (course.freeTrialDays && course.freeTrialDays > 0) || 
                    (course.freeTrialHours && course.freeTrialHours > 0) || 
                    (course.freeTrialMinutes && course.freeTrialMinutes > 0);
   
   if (!hasTrial) {
-    console.log('❌ No trial duration set');
     return false;
   }
   
@@ -150,17 +140,12 @@ export function isTrialActive(course: Course): boolean {
   
   // Handle Firestore Timestamp objects
   if (startDate && typeof startDate === 'object' && 'toDate' in startDate) {
-    console.log('🔄 Converting Firestore Timestamp to Date');
     startDate = (startDate as any).toDate();
   } else if (!startDate) {
-    console.log('⚠️ No start date - using current date');
     startDate = new Date();
   } else if (typeof startDate === 'string') {
-    console.log('🔄 Converting string to Date');
     startDate = new Date(startDate);
   }
-  
-  console.log('📅 Start date:', startDate);
   
   const expirationDate = calculateTrialExpiration(
     startDate, 
@@ -168,18 +153,12 @@ export function isTrialActive(course: Course): boolean {
     course.freeTrialHours, 
     course.freeTrialMinutes
   );
-  console.log('📅 Expiration date:', expirationDate);
-  console.log('📅 Current date:', new Date());
   
   if (!expirationDate) {
-    console.log('❌ No expiration date calculated');
     return false;
   }
   
-  const isActive = new Date() < expirationDate;
-  console.log('✅ Trial active:', isActive);
-  
-  return isActive;
+  return new Date() < expirationDate;
 }
 
 // ============================================================================
@@ -488,7 +467,13 @@ export async function checkCourseAccess(userId: string, courseId: string): Promi
     const docSnap = await getDoc(docRef);
     
     return docSnap.exists();
-  } catch (error) {
+  } catch (error: any) {
+    // Permission errors mean the document doesn't exist (user hasn't purchased)
+    // This is expected behavior when checking access for unpurchased courses
+    if (error?.code === 'permission-denied') {
+      return false;
+    }
+    
     console.error(`Error checking course access for user ${userId} and course ${courseId}:`, error);
     throw new Error('Failed to check course access');
   }
@@ -553,8 +538,6 @@ export async function getUserPurchases(userId: string): Promise<CourseAccess[]> 
  */
 export function getComments(courseId: string, callback: (comments: Comment[]) => void): Unsubscribe {
   try {
-    console.log('🔍 Setting up comments query for courseId:', courseId);
-    
     const commentsQuery = query(
       collection(db, COLLECTIONS.COMMENTS),
       where('courseId', '==', courseId),
@@ -564,11 +547,8 @@ export function getComments(courseId: string, callback: (comments: Comment[]) =>
     return onSnapshot(
       commentsQuery,
       (querySnapshot) => {
-        console.log('📦 Received snapshot with', querySnapshot.docs.length, 'documents');
-        
         const comments = querySnapshot.docs.map(doc => {
           const data = doc.data();
-          console.log('📄 Comment doc:', doc.id, data);
           return {
             id: doc.id,
             ...data,
@@ -576,17 +556,14 @@ export function getComments(courseId: string, callback: (comments: Comment[]) =>
           } as Comment;
         });
         
-        console.log('✅ Processed comments:', comments);
         callback(comments);
       },
       (error) => {
-        console.error(`❌ Error in comments snapshot listener for course ${courseId}:`, error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
+        console.error(`Error in comments snapshot listener for course ${courseId}:`, error);
         
         // If it's an index error, provide helpful message
         if (error.message.includes('index')) {
-          console.error('🔥 FIRESTORE INDEX REQUIRED! Create index at:', error.message);
+          console.error('FIRESTORE INDEX REQUIRED! Create index at:', error.message);
         }
         
         // Call callback with empty array on error so UI doesn't break
@@ -594,7 +571,7 @@ export function getComments(courseId: string, callback: (comments: Comment[]) =>
       }
     );
   } catch (error) {
-    console.error(`❌ Error setting up comments listener for course ${courseId}:`, error);
+    console.error(`Error setting up comments listener for course ${courseId}:`, error);
     throw new Error('Failed to set up comments listener');
   }
 }

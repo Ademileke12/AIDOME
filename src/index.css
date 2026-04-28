@@ -7,12 +7,6 @@
   --color-dark-surface: #0a0a0a;
   --color-light-text: #f5f5f5;
   --color-dark-border: rgba(255, 255, 255, 0.05);
-  
-  /* Light mode colors */
-  --color-light-bg: #fafafa;
-  --color-light-surface: #ffffff;
-  --color-dark-text: #0a0a0a;
-  --color-light-border: rgba(0, 0, 0, 0.08);
   --color-primary: #0a0a0a;
   
   --font-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -20,15 +14,10 @@
 }
 
 @layer base {
-  /* Dark mode (default) */
+  /* Dark mode only */
   body {
     @apply bg-dark-bg text-light-text font-sans antialiased selection:bg-white/20 selection:text-white;
     cursor: none;
-  }
-  
-  /* Light mode */
-  .light body {
-    @apply bg-light-bg text-dark-text selection:bg-black/10 selection:text-black;
   }
   
   /* Fallback if custom cursor hides on links/buttons */
@@ -36,7 +25,7 @@
     cursor: none;
   }
 
-  /* Scrollbar - Dark mode */
+  /* Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -50,17 +39,6 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-white/20;
   }
-  
-  /* Scrollbar - Light mode */
-  .light ::-webkit-scrollbar-track {
-    @apply bg-light-bg;
-  }
-  .light ::-webkit-scrollbar-thumb {
-    @apply bg-black/10 rounded-full;
-  }
-  .light ::-webkit-scrollbar-thumb:hover {
-    @apply bg-black/20;
-  }
 }
 
 @layer utilities {
@@ -68,120 +46,72 @@
     text-wrap: balance;
   }
   
-  /* Glass panel - Dark mode */
+  /* Glass panel */
   .glass-panel {
     @apply bg-dark-surface border border-white/[0.05] shadow-[0_0_40px_rgba(255,255,255,0.02)];
   }
   
-  /* Glass panel - Light mode */
-  .light .glass-panel {
-    @apply bg-white/80 border border-black/[0.15] shadow-[0_0_40px_rgba(0,0,0,0.08)];
-  }
-  
-  /* Editable label - Dark mode */
+  /* Editable label */
   .editable-label {
     @apply font-sans font-semibold text-[10px] uppercase tracking-[3px] text-white/50;
   }
   
-  /* Editable label - Light mode */
-  .light .editable-label {
-    @apply text-black/50;
-  }
-  
-  /* Editorial card - Dark mode */
+  /* Editorial card */
   .editorial-card {
     @apply bg-dark-surface border border-white/[0.05] transition-colors duration-300 hover:border-white/20;
-  }
-  
-  /* Editorial card - Light mode */
-  .light .editorial-card {
-    @apply bg-light-surface border border-black/[0.08] hover:border-black/20;
   }
   
   .editorial-h1 {
     @apply font-bold text-6xl md:text-8xl lg:text-[82px] leading-[0.9] tracking-[-3px];
   }
   
-  /* Text color utilities for theme-aware text */
+  /* Text color utilities */
   .text-theme-primary {
     @apply text-white;
-  }
-  .light .text-theme-primary {
-    @apply text-black;
   }
   
   .text-theme-secondary {
     @apply text-white/60;
   }
-  .light .text-theme-secondary {
-    @apply text-black/60;
-  }
   
   .text-theme-tertiary {
     @apply text-white/40;
-  }
-  .light .text-theme-tertiary {
-    @apply text-black/40;
   }
   
   /* Hover text colors */
   .hover-theme-primary:hover {
     @apply text-white;
   }
-  .light .hover-theme-primary:hover {
-    @apply text-black;
-  }
   
   .hover-theme-secondary:hover {
     @apply text-white/80;
-  }
-  .light .hover-theme-secondary:hover {
-    @apply text-black/80;
   }
   
   /* Group hover text colors */
   .group:hover .group-hover-theme-primary {
     @apply text-white;
   }
-  .light .group:hover .group-hover-theme-primary {
-    @apply text-black;
-  }
   
   .group:hover .group-hover-theme-secondary {
     @apply text-white/80;
-  }
-  .light .group:hover .group-hover-theme-secondary {
-    @apply text-black/80;
   }
   
   /* Background utilities */
   .bg-theme-surface {
     @apply bg-dark-surface;
   }
-  .light .bg-theme-surface {
-    @apply bg-light-surface;
-  }
   
   .bg-theme-elevated {
     @apply bg-white/5;
-  }
-  .light .bg-theme-elevated {
-    @apply bg-black/5;
   }
   
   /* Border utilities */
   .border-theme {
     @apply border-white/10;
   }
-  .light .border-theme {
-    @apply border-black/10;
-  }
   
   .border-theme-strong {
     @apply border-white/20;
-  }
-  .light .border-theme-strong {
-    @apply border-black/20;
   }
 }
 

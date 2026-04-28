@@ -2,7 +2,6 @@ import { motion } from 'motion/react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import RobotMascot from './RobotMascot';
-import ThemeToggle from './ThemeToggle';
 
 export default function Navigation() {
   const { user, isAdmin, signOut, signInWithGoogle } = useAuth();
@@ -177,7 +176,6 @@ export default function Navigation() {
 
         {/* Auth buttons */}
         <li className="pl-3 sm:pl-4 border-l border-theme flex items-center gap-3">
-          <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-theme overflow-hidden shadow-sm">
